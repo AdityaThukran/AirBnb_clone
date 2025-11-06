@@ -49,7 +49,8 @@ const listingSchema = new schema({
       "Farms",
       "Arctic",
       "Domes",
-      "Boats"
+      "Boats",
+      "Mountains"
     ],
     required: true // Make it required so every listing has a category
   }
