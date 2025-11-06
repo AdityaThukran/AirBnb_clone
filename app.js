@@ -94,13 +94,9 @@ app.get("/", (req, res) => {
   res.redirect("/listings");
 });
 
-app.use('/listings', listingRouter);
 app.use('/listings/:id/reviews', reviewRouter);
+app.use('/listings', listingRouter);
 app.use('/', userRouter);
-
-
-
-
 
 app.all('/*splat', (req,res,next) => {  // For handling 404 errors
     next(new ExpressError(404, "Page Not Found"));
