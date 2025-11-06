@@ -19,7 +19,8 @@ module.exports.listingSchema = Joi.object({
       "Farms",
       "Arctic",
       "Domes",
-      "Boats"
+      "Boats",
+      "Mountains"
     ).required(),
     // ------------------------
     
