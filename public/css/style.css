@@ -105,9 +105,10 @@ body {
 
 /* Show Page */
 .show-img {
-    width: 70vh !important;
-    height: 40vh !important;
-    object-fit: cover !important;
+   width: 100%; /* Make the image fill the width of its parent */
+    height: 60vh; /* Keep the height as before */
+    object-fit: cover;
+    border-radius: 1rem;
 }
 
 .btns {
@@ -119,3 +120,60 @@ body {
     padding-right: 0;
 }
 
+#map {
+    width: 80vh;
+    height: 400px;
+    border: #222222 2px solid;
+    border-radius: 1rem;
+}
+
+/* Add this to the bottom of public/css/style.css */
+
+/* Show Page Image */
+
+
+.card-show-page {
+    border: none;
+    margin-bottom: 2rem;
+    border: none; /* Remove border from around the image */
+    
+}
+
+/* Show Page Typography */
+.show-sub-details {
+    color: #555;
+    font-size: 1.1rem;
+}
+
+/* Booking Card (Right Column) */
+.booking-card {
+    border: 1px solid #ddd;
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Makes the booking card "stick" as you scroll */
+/* Adjust 'top' based on your navbar height */
+/* Use this more specific rule */
+.booking-card.sticky-top {
+    top: 80px; 
+}
+
+/* Map */
+#map {
+    height: 400px;
+    width: 100%;
+    border-radius: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Button Styling (Optional but nice) */
+.btn-dark {
+    background-color: #222;
+    border: none;
+}
+.btn-dark:hover {
+    background-color: #000;
+}

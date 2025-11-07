@@ -1,4 +1,7 @@
 const Listing = require('../models/listing');
+const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
+const mapToken = process.env.MAP_TOKEN;
+const geocodingClient = mbxGeocoding({ accessToken: mapToken });
 
 module.exports.index = async (req, res) => {
   try {
@@ -64,13 +67,23 @@ module.exports.showListing =  async (req,res) => {
 }
 
 module.exports.createListing = async (req, res) => {
+    let response = await geocodingClient.forwardGeocode({
+    query: req.body.listing.location,
+    limit: 1
+  })
+    .send();
+  
     let url = req.file.path;
     let filename = req.file.filename;
    
      const newListing = new Listing(req.body.listing);
     newListing.owner = req.user._id;
     newListing.image = { url, filename };
-    await newListing.save();
+
+    newListing.geometry = response.body.features[0].geometry;
+
+    let savedListing = await newListing.save();
+    console.log(savedListing);
     req.flash('success', 'Successfully made a new listing!');
     res.redirect('/listings');
  }
@@ -89,29 +102,47 @@ module.exports.createListing = async (req, res) => {
  }
 
  module.exports.updateListing = async (req, res) => {
-    try {
-        let { id } = req.params;
-        let updatedListing = await Listing.findByIdAndUpdate(
-            id,
-            { ...req.body.listing }, 
-            { new: true, runValidators: true }
-        );
+  try {
+    let { id } = req.params;
 
-        if (typeof req.file !== 'undefined') {
-        let url = req.file.path;
-        let filename = req.file.filename;
+    // 1. ADD THIS BLOCK: Run geocoding on the new location
+    let response = await geocodingClient.forwardGeocode({
+        query: req.body.listing.location, // Gets new location from edit form
+        limit: 1
+    }).send();
 
-        updatedListing.image = { url, filename };
-        await updatedListing.save();
-        }
+    // 2. Save the new coordinates back into the listing object
+    req.body.listing.geometry = response.body.features[0].geometry;
 
-        req.flash('success', 'Successfully updated a listing!');
-        res.redirect("/listings");
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Update failed");
+
+    // 3. Your original code: Update the listing
+    // This will now include the new geometry from step 2
+    let updatedListing = await Listing.findByIdAndUpdate(
+      id,
+      { ...req.body.listing },
+      { new: true, runValidators: true }
+    );
+
+    // 4. Your original code: Check for new image
+    if (typeof req.file !== 'undefined') {
+      let url = req.file.path;
+      let filename = req.file.filename;
+
+      updatedListing.image = { url, filename };
+      await updatedListing.save();
     }
-}
+
+    req.flash('success', 'successfully updated a listing!');
+    res.redirect(`/listings/${id}`);
+
+  } catch (err) {
+    // This catch block is important! If geocoding fails
+    // (e.g., location is "asdfgh"), it will stop the crash.
+    console.error(err);
+    req.flash("error", "Failed to update. Could not find location.");
+    res.redirect(`/listings/${id}/edit`);
+  }
+};
 
 module.exports.destroyListing =  async (req, res) => { 
     try {
