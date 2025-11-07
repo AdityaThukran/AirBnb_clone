@@ -157,7 +157,7 @@ body {
 /* Adjust 'top' based on your navbar height */
 /* Use this more specific rule */
 .booking-card.sticky-top {
-    top: 80px; 
+    top: 90px; 
 }
 
 /* Map */
