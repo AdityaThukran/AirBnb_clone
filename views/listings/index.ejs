@@ -1,0 +1,1443 @@
+<% layout("/layouts/boilerplate") %>
+    <% const activeTab=(typeof currentCategory !=='undefined' ) ? currentCategory : "" ; %>
+        <% const activeSort=(typeof currentSort !=='undefined' ) ? currentSort : "" ; %>
+            <% const activePriceLimit=(typeof currentMaxPrice !=='undefined' ) ? currentMaxPrice : 0; %>
+
+                <style>
+                    /* ── Filter Bar ── */
+                    #filters {
+                        display: flex;
+                        flex-wrap: nowrap;
+                        overflow-x: auto;
+                        align-items: center;
+                        padding: 0.65rem 0 0;
+                        scrollbar-width: none;
+                        background: white;
+                        position: sticky;
+                        top: 80px;
+                        z-index: 100;
+                        border-bottom: 1px solid #f0f0f0;
+                        transition: box-shadow 0.2s;
+                    }
+
+                    #filters.shadowed {
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                    }
+
+                    #filters::-webkit-scrollbar {
+                        display: none;
+                    }
+
+                    .filter-link {
+                        text-decoration: none;
+                        color: inherit;
+                        flex-shrink: 0;
+                    }
+
+                    .filter {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 5px;
+                        padding: 0.5rem 1.1rem 0.8rem;
+                        opacity: 0.6;
+                        transition: opacity 0.2s, color 0.2s;
+                        cursor: pointer;
+                        white-space: nowrap;
+                        color: #717171;
+                        position: relative;
+                    }
+
+                    .filter::after {
+                        content: '';
+                        position: absolute;
+                        bottom: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 2px;
+                        background-color: #222;
+                        transform: scaleX(0);
+                        transition: transform 0.25s ease-out;
+                        transform-origin: center;
+                    }
+
+                    .filter i {
+                        font-size: 1.35rem;
+                    }
+
+                    .filter p {
+                        font-size: 0.72rem;
+                        font-weight: 600;
+                        margin: 0;
+                    }
+
+                    .filter:hover {
+                        opacity: 1;
+                        color: #222;
+                    }
+
+                    .filter:hover::after {
+                        transform: scaleX(1);
+                        background-color: #dddddd;
+                    }
+
+                    .filter-link.active .filter {
+                        opacity: 1;
+                        color: #222;
+                    }
+
+                    .filter-link.active .filter::after {
+                        transform: scaleX(1);
+                        background-color: #222;
+                    }
+
+                    /* Tax toggle */
+                    .tax-toggle {
+                        border: 1px solid #ddd;
+                        border-radius: 12px;
+                        padding: 0.55rem 0.9rem;
+                        display: flex;
+                        align-items: center;
+                        margin-left: auto;
+                        background: white;
+                        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+                        flex-shrink: 0;
+                    }
+
+                    /* ── Sort & Filter Row ── */
+                    .sort-filter-bar {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                        flex-wrap: wrap;
+                        margin: 1.2rem 0 1rem;
+                    }
+
+                    .sort-select {
+                        border: 1.5px solid #ddd;
+                        border-radius: 24px;
+                        padding: 0.45rem 1rem;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                        background: white;
+                        cursor: pointer;
+                        outline: none;
+                        transition: border-color 0.2s;
+                        appearance: none;
+                        -webkit-appearance: none;
+                        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+                        background-repeat: no-repeat;
+                        background-position: right 12px center;
+                        padding-right: 2rem;
+                    }
+
+                    .sort-select:focus {
+                        border-color: #222;
+                    }
+
+                    .price-chip {
+                        border: 1.5px solid #e0e0e0;
+                        border-radius: 24px;
+                        padding: 0.45rem 1rem;
+                        font-size: 0.83rem;
+                        font-weight: 600;
+                        background: white;
+                        cursor: pointer;
+                        text-decoration: none;
+                        color: #222;
+                        transition: all 0.2s ease;
+                        white-space: nowrap;
+                        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+                    }
+
+                    .price-chip:hover {
+                        border-color: #888;
+                        color: #111;
+                        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.10);
+                        transform: translateY(-1px);
+                    }
+
+                    .price-chip.active {
+                        background: #111;
+                        color: white;
+                        border-color: #111;
+                        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+                    }
+
+                    .active-filters-count {
+                        background: #ff385c;
+                        color: white;
+                        border-radius: 50%;
+                        width: 20px;
+                        height: 20px;
+                        font-size: 0.7rem;
+                        font-weight: 700;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-left: -6px;
+                        margin-bottom: 8px;
+                    }
+
+                    .clear-filters-link {
+                        color: #717171;
+                        font-size: 0.83rem;
+                        font-weight: 600;
+                        text-decoration: underline;
+                        cursor: pointer;
+                        border: none;
+                        background: none;
+                        margin-left: 4px;
+                    }
+
+                    .clear-filters-link:hover {
+                        color: #222;
+                    }
+
+                    /* ── Stats Banner ── */
+                    @keyframes shimmer {
+                        0% {
+                            transform: translateX(-100%) skewX(-15deg);
+                        }
+
+                        100% {
+                            transform: translateX(300%) skewX(-15deg);
+                        }
+                    }
+
+                    .stats-banner {
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                        border-radius: 20px;
+                        padding: 1.3rem 2rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-around;
+                        gap: 1rem;
+                        margin-bottom: 1.8rem;
+                        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+                        overflow: hidden;
+                        position: relative;
+                        border: 1px solid rgba(255, 255, 255, 0.07);
+                    }
+
+                    /* Animated shimmer sweep */
+                    .stats-banner::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 40%;
+                        height: 100%;
+                        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+                        animation: shimmer 4s infinite;
+                        pointer-events: none;
+                    }
+
+                    /* Top subtle glow line */
+                    .stats-banner::after {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 10%;
+                        width: 80%;
+                        height: 1px;
+                        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+                    }
+
+                    .stat-item {
+                        text-align: center;
+                        color: white;
+                        z-index: 1;
+                        transition: transform 0.2s ease;
+                    }
+
+                    .stat-item:hover {
+                        transform: translateY(-2px);
+                    }
+
+                    .stat-num {
+                        font-size: 1.75rem;
+                        font-weight: 800;
+                        line-height: 1;
+                        background: linear-gradient(135deg, #ffffff 0%, #c8d8ff 100%);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                    }
+
+                    .stat-lbl {
+                        font-size: 0.72rem;
+                        opacity: 0.55;
+                        margin-top: 4px;
+                        letter-spacing: 0.5px;
+                        text-transform: uppercase;
+                        font-weight: 600;
+                        color: #aab4cc;
+                        -webkit-text-fill-color: #aab4cc;
+                    }
+
+                    .stat-divider {
+                        width: 1px;
+                        height: 36px;
+                        background: rgba(255, 255, 255, 0.1);
+                    }
+
+                    /* ── Cards ── */
+                    .listing-card {
+                        border: none !important;
+                        background: transparent;
+                    }
+
+                    .card-img-container {
+                        position: relative;
+                        overflow: hidden;
+                        border-radius: 16px;
+                        aspect-ratio: 1 / 1;
+                        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                        transition: box-shadow 0.35s ease, transform 0.35s ease, outline 0.2s ease;
+                        outline: 2.5px solid transparent;
+                    }
+
+                    .listing-col:hover .card-img-container {
+                        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.16);
+                        transform: translateY(-6px) scale(1.01);
+                        outline: 2.5px solid rgba(255, 56, 92, 0.25);
+                    }
+
+                    .card-img-top {
+                        height: 100% !important;
+                        width: 100% !important;
+                        object-fit: cover;
+                        transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                        filter: blur(8px);
+                        transform: scale(1.05);
+                    }
+
+                    .card-img-top.loaded {
+                        filter: blur(0);
+                        transform: scale(1);
+                    }
+
+                    .listing-col:hover .card-img-top {
+                        transform: scale(1.09);
+                        filter: blur(0);
+                    }
+
+                    /* Gradient overlay */
+                    .card-img-container::after {
+                        content: '';
+                        position: absolute;
+                        inset: 0;
+                        background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.25) 100%);
+                        border-radius: 16px;
+                        pointer-events: none;
+                        opacity: 0;
+                        transition: opacity 0.3s;
+                    }
+
+                    .listing-col:hover .card-img-container::after {
+                        opacity: 1;
+                    }
+
+                    /* Heart */
+                    .heart-icon {
+                        position: absolute;
+                        top: 14px;
+                        right: 14px;
+                        color: rgba(0, 0, 0, 0.4);
+                        font-size: 1.5rem;
+                        z-index: 10;
+                        cursor: pointer;
+                        -webkit-text-stroke: 2px white;
+                        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s;
+                    }
+
+                    .heart-icon:hover {
+                        transform: scale(1.2);
+                    }
+
+                    .heart-icon.wished-heart {
+                        color: #ff385c;
+                        -webkit-text-stroke: 1px white;
+                    }
+
+                    /* Badges */
+                    .card-badge {
+                        position: absolute;
+                        top: 12px;
+                        left: 12px;
+                        font-size: 0.7rem;
+                        font-weight: 700;
+                        z-index: 10;
+                        padding: 4px 10px;
+                        border-radius: 20px;
+                    }
+
+                    .badge-new {
+                        background: white;
+                        color: #222;
+                    }
+
+                    .badge-popular {
+                        background: #ff385c;
+                        color: white;
+                    }
+
+                    .photo-count-badge {
+                        position: absolute;
+                        bottom: 10px;
+                        right: 12px;
+                        background: rgba(0, 0, 0, 0.6);
+                        color: white;
+                        font-size: 0.68rem;
+                        font-weight: 600;
+                        z-index: 10;
+                        padding: 3px 8px;
+                        border-radius: 12px;
+                        backdrop-filter: blur(4px);
+                    }
+
+                    .card-category-pill {
+                        position: absolute;
+                        bottom: 10px;
+                        left: 12px;
+                        background: rgba(255, 255, 255, 0.92);
+                        border-radius: 20px;
+                        padding: 3px 10px;
+                        font-size: 0.68rem;
+                        font-weight: 700;
+                        color: #222;
+                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+                        backdrop-filter: blur(4px);
+                        z-index: 5;
+                        opacity: 0;
+                        transition: opacity 0.2s;
+                    }
+
+                    .listing-col:hover .card-category-pill {
+                        opacity: 1;
+                    }
+
+                    /* Card body */
+                    .card-body {
+                        padding: 0.85rem 0.2rem 0 !important;
+                    }
+
+                    .card-location {
+                        font-weight: 700;
+                        font-size: 0.96rem;
+                        color: #222;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+
+                    .card-title-text {
+                        color: #717171;
+                        font-size: 0.87rem;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+
+                    .card-price {
+                        font-weight: 700;
+                        font-size: 0.96rem;
+                        color: #222;
+                        margin-top: 4px;
+                    }
+
+                    .card-price span {
+                        font-weight: 400;
+                    }
+
+                    .card-rating {
+                        font-size: 0.8rem;
+                        color: #222;
+                        display: flex;
+                        align-items: center;
+                        gap: 3px;
+                    }
+
+                    /* ── Card entrance animation ── */
+                    @keyframes cardFadeIn {
+                        from {
+                            opacity: 0;
+                            transform: translateY(20px);
+                        }
+
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+
+                    .listing-col {
+                        animation: cardFadeIn 0.5s ease both;
+                    }
+
+                    /* Stagger each card */
+                    .listing-col:nth-child(1) {
+                        animation-delay: 0.05s;
+                    }
+
+                    .listing-col:nth-child(2) {
+                        animation-delay: 0.10s;
+                    }
+
+                    .listing-col:nth-child(3) {
+                        animation-delay: 0.15s;
+                    }
+
+                    .listing-col:nth-child(4) {
+                        animation-delay: 0.20s;
+                    }
+
+                    .listing-col:nth-child(5) {
+                        animation-delay: 0.25s;
+                    }
+
+                    .listing-col:nth-child(6) {
+                        animation-delay: 0.30s;
+                    }
+
+                    .listing-col:nth-child(7) {
+                        animation-delay: 0.35s;
+                    }
+
+                    .listing-col:nth-child(8) {
+                        animation-delay: 0.40s;
+                    }
+
+                    .listing-col:nth-child(n+9) {
+                        animation-delay: 0.45s;
+                    }
+
+                    /* Card body text transitions */
+                    .card-location {
+                        transition: color 0.2s ease;
+                    }
+
+                    .listing-col:hover .card-location {
+                        color: #ff385c;
+                    }
+
+                    .card-price {
+                        transition: color 0.2s ease;
+                    }
+
+                    #tax-info {
+                        display: none;
+                        color: #717171;
+                        font-weight: 400;
+                    }
+
+                    /* ── Skeleton shimmer ── */
+                    .skeleton-grid {
+                        display: none;
+                    }
+
+                    .skeleton-grid.active {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 1.5rem;
+                    }
+
+                    .skeleton-card {
+                        border-radius: 16px;
+                        overflow: hidden;
+                    }
+
+                    .skeleton-img {
+                        aspect-ratio: 1/1;
+                        border-radius: 16px;
+                        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                        background-size: 200% 100%;
+                        animation: shimmer 1.5s infinite;
+                    }
+
+                    .skeleton-line {
+                        height: 14px;
+                        border-radius: 8px;
+                        margin-top: 10px;
+                        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                        background-size: 200% 100%;
+                        animation: shimmer 1.5s infinite;
+                    }
+
+                    .skeleton-line.short {
+                        width: 60%;
+                    }
+
+                    @keyframes shimmer {
+                        0% {
+                            background-position: 200% 0;
+                        }
+
+                        100% {
+                            background-position: -200% 0;
+                        }
+                    }
+
+                    /* ── Back to Top ── */
+                    #backToTop {
+                        position: fixed;
+                        bottom: 2rem;
+                        right: 2rem;
+                        z-index: 999;
+                        width: 48px;
+                        height: 48px;
+                        border-radius: 50%;
+                        background: #222;
+                        color: white;
+                        border: none;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1.1rem;
+                        cursor: pointer;
+                        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+                        opacity: 0;
+                        pointer-events: none;
+                        transition: opacity 0.3s, transform 0.3s;
+                        transform: translateY(10px);
+                    }
+
+                    #backToTop.visible {
+                        opacity: 1;
+                        pointer-events: all;
+                        transform: translateY(0);
+                    }
+
+                    #backToTop:hover {
+                        background: #ff385c;
+                    }
+
+                    /* ── Empty State ── */
+                    .empty-state {
+                        text-align: center;
+                        padding: 5rem 1rem;
+                    }
+
+                    .empty-state-icon {
+                        width: 90px;
+                        height: 90px;
+                        border-radius: 50%;
+                        background: linear-gradient(135deg, #fff0f3, #ffe0e7);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto 1.5rem;
+                        box-shadow: 0 8px 24px rgba(255, 56, 92, 0.15);
+                    }
+
+                    .empty-state-icon i {
+                        font-size: 2.5rem;
+                        color: #ff385c;
+                    }
+
+                    .reset-btn {
+                        background: #222;
+                        color: white;
+                        border: none;
+                        border-radius: 10px;
+                        padding: 0.7rem 2rem;
+                        font-weight: 700;
+                        text-decoration: none;
+                        transition: background 0.2s;
+                        display: inline-block;
+                    }
+
+                    .reset-btn:hover {
+                        background: #ff385c;
+                        color: white;
+                    }
+                </style>
+
+                <!-- ══ FILTER BAR ══ -->
+                <div id="filters" class="container-fluid px-4">
+                    <% const filters=[ { href: '/listings' , label: 'Popular' , icon: 'fa-solid fa-fire' , key: '' }, {
+                        href: '/listings?category=Rooms' , label: 'Rooms' , icon: 'fa-solid fa-bed' , key: 'Rooms' }, {
+                        href: '/listings?category=Huts' , label: 'Huts' , icon: 'fa-solid fa-house-chimney-window' ,
+                        key: 'Huts' }, { href: '/listings?category=Tropical' , label: 'Tropical' ,
+                        icon: 'fa-solid fa-sun-plant-wilt' , key: 'Tropical' }, { href: '/listings?category=Beachfront'
+                        , label: 'Beach' , icon: 'fa-solid fa-umbrella-beach' , key: 'Beachfront' }, {
+                        href: '/listings?category=Iconic cities' , label: 'Cities' , icon: 'fa-solid fa-mountain-city' ,
+                        key: 'Iconic cities' }, { href: '/listings?category=Mountains' , label: 'Mountains' ,
+                        icon: 'fa-solid fa-mountain-sun' , key: 'Mountains' }, { href: '/listings?category=Castles' ,
+                        label: 'Castles' , icon: 'fa-brands fa-fort-awesome' , key: 'Castles' }, {
+                        href: '/listings?category=Arctic' , label: 'Arctic' , icon: 'fa-solid fa-snowflake' ,
+                        key: 'Arctic' }, { href: '/listings?category=Lakefront' , label: 'Lakes' ,
+                        icon: 'fa-solid fa-water' , key: 'Lakefront' }, { href: '/listings?category=Boats' ,
+                        label: 'Boats' , icon: 'fa-solid fa-sailboat' , key: 'Boats' }, ]; %>
+                        <% filters.forEach(f=> {
+                            let catParams = [];
+                            if (f.key) catParams.push('category=' + f.key);
+                            if (activeSort) catParams.push('sort=' + activeSort);
+                            if (activePriceLimit > 0) catParams.push('maxPrice=' + activePriceLimit);
+                            const catHref = '/listings' + (catParams.length ? '?' + catParams.join('&') : '');
+                            %>
+                            <a href="<%= catHref %>" class="filter-link <%= (activeTab === f.key) ? 'active' : '' %>">
+                                <div class="filter">
+                                    <i class="<%= f.icon %>"></i>
+                                    <p>
+                                        <%= f.label %>
+                                    </p>
+                                </div>
+                            </a>
+                            <% }) %>
+
+                                <div class="tax-toggle d-none d-md-flex ms-3 me-1">
+                                    <div class="form-check form-switch form-check-reverse mb-0">
+                                        <input class="form-check-input" type="checkbox" role="switch"
+                                            id="switchCheckDefault" style="cursor:pointer;">
+                                        <label class="form-check-label fw-semibold" for="switchCheckDefault"
+                                            style="cursor:pointer;font-size:0.82rem;">
+                                            Show with taxes
+                                        </label>
+                                    </div>
+                                </div>
+                </div>
+
+                <!-- ══ MAIN CONTENT ══ -->
+                <div class="container-fluid px-4 mt-2">
+
+                    <!-- Sort + Price Filter Row -->
+                    <div class="sort-filter-bar">
+                        <!-- Sort dropdown -->
+                        <form method="GET" action="/listings" id="sortForm" style="margin:0;">
+                            <% if (activeTab) { %><input type="hidden" name="category" value="<%= activeTab %>">
+                                <% } %>
+                                    <% if (activePriceLimit> 0) { %><input type="hidden" name="maxPrice"
+                                            value="<%= activePriceLimit %>">
+                                        <% } %>
+                                            <select name="sort" class="sort-select"
+                                                onchange="document.getElementById('sortForm').submit()">
+                                                <option value="" <%=!activeSort ? 'selected' : '' %>>Sort: Featured
+                                                </option>
+                                                <option value="newest" <%=activeSort==='newest' ? 'selected' : '' %>
+                                                    >Newest first</option>
+                                                <option value="price_asc" <%=activeSort==='price_asc' ? 'selected' : ''
+                                                    %>>Price: Low → High</option>
+                                                <option value="price_desc" <%=activeSort==='price_desc' ? 'selected'
+                                                    : '' %>>Price: High → Low</option>
+                                            </select>
+                        </form>
+
+                        <!-- Price chips -->
+                        <span style="font-size:0.83rem; color:#717171; font-weight:600;">Max price:</span>
+                        <% const priceChips=[ { label: 'All prices' , val: 0 }, { label: 'Under ₹2,000' , val: 2000 }, {
+                            label: 'Under ₹5,000' , val: 5000 }, { label: 'Under ₹10,000' , val: 10000 }, ]; %>
+                            <% priceChips.forEach(chip=> { %>
+                                <% let chipParams=[]; if (activeTab) chipParams.push(`category=${activeTab}`); if
+                                    (activeSort) chipParams.push(`sort=${activeSort}`); if (chip.val> 0)
+                                    chipParams.push(`maxPrice=${chip.val}`);
+                                    const chipString = chipParams.length > 0 ? `?` + chipParams.join(`&`) : ``;
+                                    const chipHref = `/listings` + chipString;
+                                    %>
+                                    <a href="<%= chipHref %>"
+                                        class="price-chip <%= activePriceLimit === chip.val ? 'active' : '' %>">
+                                        <%= chip.label %>
+                                    </a>
+                                    <% }) %>
+
+                                        <!-- Clear all filters link -->
+                                        <% const hasFilters=activeTab || activeSort || activePriceLimit> 0; %>
+                                            <% if (hasFilters) { %>
+                                                <a href="/listings" class="clear-filters-link">✕ Clear all</a>
+                                                <% } %>
+
+                                                    <!-- Results count -->
+                                                    <span class="ms-auto text-muted"
+                                                        style="font-size:0.82rem; white-space:nowrap;">
+                                                        <strong>
+                                                            <%= allListings.length %>
+                                                        </strong> stay<%= allListings.length !==1 ? 's' : '' %> found
+                                                    </span>
+                    </div>
+
+                    <% if (allListings.length> 0) { %>
+
+                        <!-- Stats Banner (only on unfiltered main page) -->
+                        <% if (!activeTab && !activeSort && !activePriceLimit) { %>
+                            <div class="stats-banner mb-4">
+                                <div class="stat-item">
+                                    <div class="stat-num">
+                                        <%= allListings.length %>+
+                                    </div>
+                                    <div class="stat-lbl">Unique stays</div>
+                                </div>
+                                <div class="stat-divider"></div>
+                                <div class="stat-item">
+                                    <div class="stat-num">50+</div>
+                                    <div class="stat-lbl">Cities covered</div>
+                                </div>
+                                <div class="stat-divider"></div>
+                                <div class="stat-item">
+                                    <div class="stat-num">4.8★</div>
+                                    <div class="stat-lbl">Avg. guest rating</div>
+                                </div>
+                                <div class="stat-divider d-none d-md-block"></div>
+                                <div class="stat-item d-none d-md-block">
+                                    <div class="stat-num">24/7</div>
+                                    <div class="stat-lbl">Host support</div>
+                                </div>
+                            </div>
+                            <% } %>
+
+                                <!-- ══ LISTINGS GRID ══ -->
+                                <div class="row row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-sm-1 g-4"
+                                    id="listingsGrid">
+                                    <% const now=new Date(); %>
+                                        <% for (let listing of allListings) { %>
+                                            <% // Is this listing "new" ? (added within last 14 days) const
+                                                isNew=listing.createdAt && ((now - new Date(listing.createdAt)) < 14 *
+                                                24 * 60 * 60 * 1000); // Is it popular? (5+ reviews) const
+                                                isPopular=listing.reviews && listing.reviews.length>= 5;
+                                                // Avg rating
+                                                let avgRating = null;
+                                                if (listing.reviews && listing.reviews.length > 0) {
+                                                const sum = listing.reviews.reduce((s, r) => s + (r.rating || 5), 0);
+                                                avgRating = (sum / listing.reviews.length).toFixed(1);
+                                                }
+                                                // Image
+                                                let imageUrl =
+                                                "https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60";
+                                                if (listing.image && Array.isArray(listing.image) &&
+                                                listing.image.length > 0) {
+                                                imageUrl = listing.image[0].url;
+                                                }
+                                                const photoCount = (listing.image && listing.image.length) || 1;
+                                                const isWished = currentUser && currentUser.wishlists &&
+                                                currentUser.wishlists.some(id => id.toString() ===
+                                                listing._id.toString());
+                                                %>
+                                                <div class="col listing-col">
+                                                    <a href="/listings/<%= listing._id %>" class="filter-link">
+                                                        <div class="card listing-card h-100">
+                                                            <div class="card-img-container">
+                                                                <!-- Badge: New or Popular -->
+                                                                <% if (isNew) { %>
+                                                                    <span class="card-badge badge-new">✦ New</span>
+                                                                    <% } else if (isPopular) { %>
+                                                                        <span class="card-badge badge-popular">⭐
+                                                                            Popular</span>
+                                                                        <% } %>
+
+                                                                            <!-- Wishlist -->
+                                                                            <i class="fa-solid fa-heart heart-icon <%= isWished ? 'wished-heart' : '' %>"
+                                                                                onclick="toggleWishlist(event, '<%= listing._id %>', this)"></i>
+
+                                                                            <!-- Photo count badge -->
+                                                                            <% if (photoCount> 1) { %>
+                                                                                <span class="photo-count-badge"><i
+                                                                                        class="fa-regular fa-image me-1"></i>
+                                                                                    <%= photoCount %>
+                                                                                </span>
+                                                                                <% } %>
+
+                                                                                    <!-- Category pill -->
+                                                                                    <% if (listing.category) { %>
+                                                                                        <span
+                                                                                            class="card-category-pill">
+                                                                                            <%= listing.category %>
+                                                                                        </span>
+                                                                                        <% } %>
+
+                                                                                            <!-- Blur-up image -->
+                                                                                            <img data-src="<%= imageUrl %>"
+                                                                                                src="<%= imageUrl.replace('w=800', 'w=40').replace('q=60', 'q=10') %>"
+                                                                                                class="card-img-top lazy-img"
+                                                                                                alt="<%= listing.title %>"
+                                                                                                loading="lazy">
+                                                            </div>
+
+                                                            <div class="card-body">
+                                                                <div
+                                                                    class="d-flex justify-content-between align-items-start gap-1">
+                                                                    <div
+                                                                        class="card-location flex-shrink-1 overflow-hidden">
+                                                                        <%= listing.location %>, <%= listing.country %>
+                                                                    </div>
+                                                                    <% if (avgRating) { %>
+                                                                        <span class="card-rating flex-shrink-0">
+                                                                            <i class="fa-solid fa-star"
+                                                                                style="font-size:0.72rem;"></i>
+                                                                            <%= avgRating %>
+                                                                        </span>
+                                                                        <% } %>
+                                                                </div>
+                                                                <div class="card-title-text">
+                                                                    <%= listing.title %>
+                                                                </div>
+                                                                <div class="card-price"
+                                                                    data-price="<%= listing.price %>">
+                                                                    <span class="base-price">₹<%=
+                                                                            listing.price.toLocaleString("en-IN") %>
+                                                                    </span><span class="per-night"> /
+                                                                        night</span>
+                                                                    <div class="tax-price"
+                                                                        style="display:none; font-size:0.82rem; color:#717171; font-weight:400; margin-top:2px;">
+                                                                        ₹<span class="tax-val"></span> / night <span
+                                                                            style="color:#22c55e; font-weight:600;">incl.
+                                                                            18% GST</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                <% } %>
+                                </div>
+
+                                <% } else { %>
+                                    <!-- ══ EMPTY STATE ══ -->
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon"><i class="fa-solid fa-compass"></i></div>
+                                        <h4 class="fw-bold mb-2">No stays found</h4>
+                                        <p class="text-muted mb-4" style="max-width:360px; margin: 0 auto;">
+                                            We couldn't find any listings matching your current filters. Try adjusting
+                                            your search.
+                                        </p>
+                                        <a href="/listings" class="reset-btn">Clear all filters</a>
+                                    </div>
+                                    <% } %>
+                </div>
+
+                <!-- Back to top button -->
+                <button id="backToTop" title="Back to top" aria-label="Back to top">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+
+                <script>
+                    /* ── Blur-up lazy loading ── */
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const lazyImgs = document.querySelectorAll('.lazy-img');
+                        const obs = new IntersectionObserver((entries) => {
+                            entries.forEach(entry => {
+                                if (entry.isIntersecting) {
+                                    const img = entry.target;
+                                    const hqSrc = img.dataset.src;
+                                    if (hqSrc && img.src !== hqSrc) {
+                                        const hi = new Image();
+                                        hi.onload = () => { img.src = hqSrc; img.classList.add('loaded'); };
+                                        hi.src = hqSrc;
+                                    } else {
+                                        img.classList.add('loaded');
+                                    }
+                                    obs.unobserve(img);
+                                }
+                            });
+                        }, { rootMargin: '200px' });
+                        lazyImgs.forEach(img => obs.observe(img));
+                    });
+
+                    /* ── Filter bar shadow on scroll ── */
+                    const filtersBar = document.getElementById('filters');
+                    window.addEventListener('scroll', () => {
+                        if (window.scrollY > 10) {
+                            filtersBar.classList.add('shadowed');
+                        } else {
+                            filtersBar.classList.remove('shadowed');
+                        }
+                    }, { passive: true });
+
+                    /* ── Back to top ── */
+                    const backToTopBtn = document.getElementById('backToTop');
+                    window.addEventListener('scroll', () => {
+                        if (window.scrollY > 400) {
+                            backToTopBtn.classList.add('visible');
+                        } else {
+                            backToTopBtn.classList.remove('visible');
+                        }
+                    }, { passive: true });
+                    backToTopBtn.addEventListener('click', () => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    });
+
+                    /* ── Tax toggle ── */
+                    const taxToggle = document.getElementById('switchCheckDefault');
+                    if (taxToggle) {
+                        taxToggle.addEventListener('change', function () {
+                            document.querySelectorAll('#tax-info').forEach(el => {
+                                el.style.display = this.checked ? 'inline' : 'none';
+                            });
+                        });
+                    }
+
+                    /* ── Wishlist toggle ── */
+                    async function toggleWishlist(event, listingId, element) {
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        const isLoggedIn = "<%= currentUser ? 'true' : 'false' %>" === "true";
+
+                        if (!isLoggedIn) {
+                            window.location.href = '/login';
+                            return;
+                        }
+
+                        try {
+                            const res = await fetch(`/wishlist/${listingId}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' }
+                            });
+                            const data = await res.json();
+
+                            // Animate the heart
+                            element.style.transform = 'scale(1.4)';
+                            setTimeout(() => element.style.transform = '', 200);
+
+                            if (data.action === 'added') {
+                                element.classList.add('wished-heart');
+                            } else {
+                                element.classList.remove('wished-heart');
+                            }
+                        } catch (err) {
+                            console.error('Wishlist error:', err);
+                        }
+                    }
+                </script>
+
+                <!-- ══ FIRST-VISIT PROMO MODAL ══ -->
+                <div id="promoModal" class="promo-modal-overlay" aria-modal="true" role="dialog"
+                    aria-label="First visit discount offer">
+                    <div class="promo-modal-card">
+                        <!-- Close button -->
+                        <button class="promo-close-btn" id="promoCloseBtn" aria-label="Close offer">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+
+                        <!-- Left: Image -->
+                        <div class="promo-image-panel">
+                            <img src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                                alt="Beautiful beachfront view" class="promo-img">
+                            <div class="promo-img-overlay">
+                                <span class="promo-img-tag"><i class="fa-solid fa-tag me-1"></i> First Stay Offer</span>
+                            </div>
+                        </div>
+
+                        <!-- Right: Copy -->
+                        <div class="promo-content-panel">
+                            <div class="promo-brand">
+                                <i class="fa-solid fa-compass promo-brand-icon"></i>
+                                <span class="promo-brand-name">wanderlust</span>
+                            </div>
+
+                            <div class="promo-badge">🎉 Welcome Gift</div>
+
+                            <h2 class="promo-headline">Get <span class="promo-highlight">20% off</span><br>your first
+                                booking!</h2>
+
+                            <p class="promo-subtext">
+                                Unlock exclusive savings on thousands of handpicked stays around the world.
+                                Use code at checkout:
+                            </p>
+
+                            <div class="promo-code-box">
+                                <span class="promo-code-label">YOUR CODE</span>
+                                <div class="promo-code-row">
+                                    <span class="promo-code" id="promoCode">WANDER20</span>
+                                    <button class="promo-copy-btn" id="promoCopyBtn" title="Copy code">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="promo-actions">
+                                <a href="/listings" class="promo-cta-btn" id="promoCTA">
+                                    <i class="fa-solid fa-magnifying-glass me-2"></i>Browse Stays
+                                </a>
+                                <button class="promo-dismiss-btn" id="promoDismissBtn">Maybe later</button>
+                            </div>
+
+                            <p class="promo-disclaimer">Offer valid for new users. T&C apply.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                    /* ── Promo Modal ── */
+                    .promo-modal-overlay {
+                        position: fixed;
+                        inset: 0;
+                        background: rgba(0, 0, 0, 0.55);
+                        backdrop-filter: blur(6px);
+                        -webkit-backdrop-filter: blur(6px);
+                        z-index: 9999;
+                        display: none;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 1rem;
+                        opacity: 0;
+                        transition: opacity 0.4s ease;
+                    }
+
+                    .promo-modal-card {
+                        position: relative;
+                        display: flex;
+                        max-width: 820px;
+                        width: 100%;
+                        background: white;
+                        border-radius: 24px;
+                        overflow: hidden;
+                        box-shadow: 0 32px 80px rgba(0, 0, 0, 0.3);
+                        transform: translateY(30px) scale(0.97);
+                        transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+                        max-height: 90vh;
+                    }
+
+                    .promo-modal-overlay.visible .promo-modal-card {
+                        transform: translateY(0) scale(1);
+                    }
+
+                    .promo-close-btn {
+                        position: absolute;
+                        top: 14px;
+                        right: 14px;
+                        background: rgba(255, 255, 255, 0.9);
+                        border: none;
+                        border-radius: 50%;
+                        width: 34px;
+                        height: 34px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        z-index: 10;
+                        font-size: 1rem;
+                        color: #555;
+                        transition: background 0.2s, transform 0.2s;
+                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                    }
+
+                    .promo-close-btn:hover {
+                        background: white;
+                        transform: scale(1.1);
+                        color: #222;
+                    }
+
+                    /* Image panel */
+                    .promo-image-panel {
+                        position: relative;
+                        flex: 0 0 45%;
+                        overflow: hidden;
+                    }
+
+                    .promo-img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                        display: block;
+                        transition: transform 0.6s ease;
+                    }
+
+                    .promo-modal-card:hover .promo-img {
+                        transform: scale(1.04);
+                    }
+
+                    .promo-img-overlay {
+                        position: absolute;
+                        inset: 0;
+                        background: linear-gradient(160deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.45) 100%);
+                    }
+
+                    .promo-img-tag {
+                        position: absolute;
+                        bottom: 18px;
+                        left: 18px;
+                        background: rgba(255, 255, 255, 0.92);
+                        color: #222;
+                        font-size: 0.72rem;
+                        font-weight: 700;
+                        padding: 5px 12px;
+                        border-radius: 20px;
+                        backdrop-filter: blur(4px);
+                    }
+
+                    /* Content panel */
+                    .promo-content-panel {
+                        flex: 1;
+                        padding: 2.2rem 2rem 1.8rem;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.85rem;
+                        overflow-y: auto;
+                    }
+
+                    .promo-brand {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        margin-bottom: -0.25rem;
+                    }
+
+                    .promo-brand-icon {
+                        color: #ff385c;
+                        font-size: 1.35rem;
+                    }
+
+                    .promo-brand-name {
+                        font-size: 1.25rem;
+                        font-weight: 800;
+                        color: #ff385c;
+                        letter-spacing: -1px;
+                    }
+
+                    .promo-badge {
+                        display: inline-block;
+                        background: linear-gradient(135deg, #fff0f3, #ffe4ea);
+                        color: #ff385c;
+                        font-size: 0.75rem;
+                        font-weight: 700;
+                        padding: 5px 14px;
+                        border-radius: 20px;
+                        border: 1px solid #ffc8d2;
+                        width: fit-content;
+                    }
+
+                    .promo-headline {
+                        font-size: 1.9rem;
+                        font-weight: 800;
+                        line-height: 1.2;
+                        color: #1a1a1a;
+                        margin: 0;
+                    }
+
+                    .promo-highlight {
+                        background: linear-gradient(135deg, #ff385c, #bd1e59);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                    }
+
+                    .promo-subtext {
+                        font-size: 0.875rem;
+                        color: #717171;
+                        line-height: 1.5;
+                        margin: 0;
+                    }
+
+                    .promo-code-box {
+                        background: #f7f7f7;
+                        border-radius: 14px;
+                        padding: 0.9rem 1.1rem;
+                        border: 1.5px dashed #ddd;
+                    }
+
+                    .promo-code-label {
+                        font-size: 0.65rem;
+                        font-weight: 700;
+                        letter-spacing: 1.5px;
+                        color: #aaa;
+                        display: block;
+                        margin-bottom: 4px;
+                    }
+
+                    .promo-code-row {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 0.5rem;
+                    }
+
+                    .promo-code {
+                        font-size: 1.45rem;
+                        font-weight: 800;
+                        color: #222;
+                        letter-spacing: 2px;
+                    }
+
+                    .promo-copy-btn {
+                        background: #222;
+                        color: white;
+                        border: none;
+                        border-radius: 10px;
+                        width: 36px;
+                        height: 36px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        font-size: 0.9rem;
+                        transition: background 0.2s, transform 0.15s;
+                        flex-shrink: 0;
+                    }
+
+                    .promo-copy-btn:hover {
+                        background: #ff385c;
+                        transform: scale(1.08);
+                    }
+
+                    .promo-actions {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.6rem;
+                        margin-top: 0.25rem;
+                    }
+
+                    .promo-cta-btn {
+                        background: linear-gradient(135deg, #ff385c, #bd1e59);
+                        color: white;
+                        border: none;
+                        border-radius: 12px;
+                        padding: 0.8rem 1.5rem;
+                        font-weight: 700;
+                        font-size: 0.92rem;
+                        text-align: center;
+                        text-decoration: none;
+                        transition: transform 0.2s, box-shadow 0.2s;
+                        box-shadow: 0 6px 20px rgba(255, 56, 92, 0.3);
+                        display: block;
+                    }
+
+                    .promo-cta-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 10px 28px rgba(255, 56, 92, 0.4);
+                        color: white;
+                    }
+
+                    .promo-dismiss-btn {
+                        background: none;
+                        border: none;
+                        color: #aaa;
+                        font-size: 0.82rem;
+                        cursor: pointer;
+                        text-align: center;
+                        text-decoration: underline;
+                        padding: 0;
+                        transition: color 0.2s;
+                    }
+
+                    .promo-dismiss-btn:hover {
+                        color: #555;
+                    }
+
+                    .promo-disclaimer {
+                        font-size: 0.72rem;
+                        color: #bbb;
+                        margin: 0;
+                    }
+
+                    /* Mobile responsive */
+                    @media (max-width: 600px) {
+                        .promo-image-panel {
+                            display: none;
+                        }
+
+                        .promo-content-panel {
+                            padding: 2rem 1.5rem 1.5rem;
+                        }
+
+                        .promo-headline {
+                            font-size: 1.5rem;
+                        }
+                    }
+                </style>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const STORAGE_KEY = 'wanderlust_promo_seen';
+                        const overlay = document.getElementById('promoModal');
+                        const closeBtn = document.getElementById('promoCloseBtn');
+                        const dismissBtn = document.getElementById('promoDismissBtn');
+                        const ctaBtn = document.getElementById('promoCTA');
+                        const copyBtn = document.getElementById('promoCopyBtn');
+                        const promoCode = document.getElementById('promoCode');
+
+                        if (!overlay) return; // safety guard
+
+                        function closeModal() {
+                            overlay.style.opacity = '0';
+                            overlay.style.pointerEvents = 'none';
+                            setTimeout(function () { overlay.style.display = 'none'; }, 400);
+                            localStorage.setItem(STORAGE_KEY, '1');
+                        }
+
+                        function openModal() {
+                            overlay.style.display = 'flex';
+                            // Force reflow so transition plays
+                            overlay.getBoundingClientRect();
+                            overlay.style.opacity = '1';
+                            overlay.style.pointerEvents = 'auto';
+                        }
+
+                        // Show only on first visit
+                        if (!localStorage.getItem(STORAGE_KEY)) {
+                            setTimeout(openModal, 1000);
+
+                            // Only enable backdrop-click after the animation settles
+                            setTimeout(function () {
+                                overlay.addEventListener('click', function (e) {
+                                    if (e.target === overlay) closeModal();
+                                });
+                            }, 2500);
+                        }
+
+                        closeBtn.addEventListener('click', closeModal);
+                        dismissBtn.addEventListener('click', closeModal);
+                        ctaBtn.addEventListener('click', closeModal);
+
+                        // Copy code button
+                        copyBtn.addEventListener('click', function () {
+                            navigator.clipboard.writeText(promoCode.textContent.trim()).then(function () {
+                                copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                                copyBtn.style.background = '#22c55e';
+                                setTimeout(function () {
+                                    copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i>';
+                                    copyBtn.style.background = '#222';
+                                }, 2000);
+                            });
+                        });
+
+                        // ESC key closes
+                        document.addEventListener('keydown', function (e) {
+                            if (e.key === 'Escape') closeModal();
+                        });
+                    });
+                </script>
+
+                <script>
+                    // ── Tax Toggle ──
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const toggle = document.getElementById('switchCheckDefault');
+                        if (!toggle) return;
+
+                        const TAX_RATE = 0.18;
+
+                        function applyTax(showTax) {
+                            document.querySelectorAll('.card-price[data-price]').forEach(function (el) {
+                                const base = parseFloat(el.dataset.price);
+                                const taxInclusive = Math.round(base * (1 + TAX_RATE));
+
+                                const baseEl = el.querySelector('.base-price');
+                                const taxDiv = el.querySelector('.tax-price');
+                                const taxVal = el.querySelector('.tax-val');
+
+                                if (!baseEl || !taxDiv || !taxVal) return;
+
+                                if (showTax) {
+                                    // Keep original price as-is, show inflated price below it
+                                    taxVal.textContent = taxInclusive.toLocaleString('en-IN');
+                                    taxDiv.style.display = 'block';
+                                } else {
+                                    taxDiv.style.display = 'none';
+                                }
+                            });
+
+                            // Persist preference
+                            localStorage.setItem('wanderlust_show_taxes', showTax ? '1' : '0');
+                        }
+
+                        // Restore preference from last session
+                        const saved = localStorage.getItem('wanderlust_show_taxes');
+                        if (saved === '1') {
+                            toggle.checked = true;
+                            applyTax(true);
+                        }
+
+                        toggle.addEventListener('change', function () {
+                            applyTax(this.checked);
+                        });
+                    });
+                </script>

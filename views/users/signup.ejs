@@ -1,0 +1,57 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="text-center mb-4">
+            <i class="fa-solid fa-compass auth-brand"></i>
+            <h2 class="fw-bold">Join Wanderlust</h2>
+            <p class="text-muted">Create an account to start exploring</p>
+        </div>
+
+        <form action="/signup" method="POST" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label for="username" class="form-label fw-bold">Username</label>
+                <input 
+                    name="username" 
+                    placeholder="Choose a unique username" 
+                    type="text" 
+                    class="form-control auth-input" 
+                    id="username" 
+                    required>
+                <div class="valid-feedback">Looks good!</div>
+                <div class="invalid-feedback">Please choose a username.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label fw-bold">Email</label>
+                <input 
+                    name="email" 
+                    placeholder="enter your email" 
+                    type="email" 
+                    class="form-control auth-input" 
+                    id="email" 
+                    required>
+                <div class="invalid-feedback">Please provide a valid email.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label fw-bold">Password</label>
+                <input 
+                    name="password" 
+                    placeholder="create a secure password" 
+                    type="password" 
+                    class="form-control auth-input" 
+                    id="password" 
+                    required>
+                <div class="invalid-feedback">Password is required.</div>
+            </div>
+
+            <button class="btn btn-dark w-100 auth-btn mt-2">Sign Up</button>
+        </form>
+
+        <hr class="my-4">
+        <p class="text-center mb-0">
+            Already have an account? <a href="/login" class="auth-link">Log in</a>
+        </p>
+    </div>
+</div>

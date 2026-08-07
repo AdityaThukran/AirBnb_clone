@@ -1,0 +1,398 @@
+/* ========================================= */
+/* --- GENERAL STYLES & LAYOUT ---           */
+/* ========================================= */
+body {
+    font-family: "Plus Jakarta Sans", sans-serif !important;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    color: #222222;
+}
+
+/* Global Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 600;
+    color: #222222;
+    letter-spacing: -0.02em;
+}
+
+/* Form Polishing */
+.form-control,
+.form-select {
+    border-radius: 8px;
+    border: 1px solid #b0b0b0;
+    padding: 0.75rem 1rem;
+    transition: box-shadow 0.2s;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #222222;
+    box-shadow: inset 0 0 0 1px #222222 !important;
+    outline: none;
+}
+
+/* Premium Shadows */
+.shadow-sm {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid #dddddd;
+}
+
+.shadow-lg {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15), 0 6px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.container {
+    flex: 1;
+}
+
+/* Navbar */
+.navbar {
+    height: 5rem;
+    background-color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.fa-compass {
+    color: #ff385c;
+    /* Signature Wanderlust Red */
+    font-size: 2rem;
+}
+
+.nav-link {
+    color: #222222 !important;
+    font-weight: 500;
+}
+
+/* ========================================= */
+/* --- AUTH & CREATE LISTING CONTAINER ---   */
+/* ========================================= */
+/* Immersive background for Login, Signup, and New Listing */
+.auth-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+        url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    border-radius: 20px;
+    margin: 2rem 0;
+    padding: 1rem;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.auth-brand {
+    color: #ff385c;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.auth-btn {
+    background-color: #ff385c !important;
+    border: none !important;
+    padding: 0.8rem !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    color: white !important;
+    transition: background-color 0.2s ease;
+}
+
+.auth-btn:hover {
+    background-color: #e31c5f !important;
+}
+
+.auth-input:focus {
+    border-color: #ff385c !important;
+    box-shadow: 0 0 0 0.25rem rgba(255, 56, 92, 0.25) !important;
+}
+
+.auth-link {
+    color: #ff385c;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* ========================================= */
+/* --- CARDS & GRID ---                      */
+/* ========================================= */
+.listing-card {
+    border: none !important;
+    margin-bottom: 2rem;
+    transition: transform 0.2s;
+}
+
+.card-img-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    aspect-ratio: 1/1;
+    /* Standard square ratio */
+}
+
+.card-img-top {
+    height: 100% !important;
+    width: 100% !important;
+    object-fit: cover !important;
+    transition: transform 0.5s ease;
+}
+
+.listing-card:hover .card-img-top {
+    transform: scale(1.05);
+    /* Premium hover zoom effect */
+}
+
+.card-body {
+    padding: 0.75rem 0 !important;
+}
+
+/* Heart Icon Overlay */
+.heart-icon {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 1.3rem;
+    z-index: 10;
+    cursor: pointer;
+    -webkit-text-stroke: 2px white;
+}
+
+.heart-icon.wished-heart {
+    color: #ff385c;
+    -webkit-text-stroke: 1px white;
+}
+
+/* ========================================= */
+/* --- FILTERS & ACTIVE INDICATOR ---        */
+/* ========================================= */
+#filters {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    align-items: center;
+    padding: 0.5rem 0;
+    scrollbar-width: none;
+    gap: 1.5rem;
+    background-color: white;
+}
+
+#filters::-webkit-scrollbar {
+    display: none;
+}
+
+.filter {
+    text-align: center;
+    opacity: 0.7;
+    transition: 0.2s ease;
+    min-width: 65px;
+}
+
+.filter:hover {
+    opacity: 1;
+    cursor: pointer;
+}
+
+/* THE "ARROW" FIX: Moves the underline to active category */
+.filter-link.active .filter {
+    opacity: 1 !important;
+    border-bottom: 2px solid #222;
+    padding-bottom: 2px;
+}
+
+.filter-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ========================================= */
+/* --- SHOW PAGE & GALLERY ---               */
+/* ========================================= */
+.show-img {
+    width: 100%;
+    height: 60vh;
+    object-fit: cover;
+    border-radius: 1rem;
+}
+
+.listing-gallery-container {
+    display: flex;
+    height: 50vh;
+    min-height: 350px;
+    max-height: 500px;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    gap: 8px;
+}
+
+.gallery-sub-images-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+}
+
+.show-all-photos-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: white;
+    border: 1px solid #222222;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 600;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease;
+}
+
+/* ========================================= */
+/* --- BOOKING & MAP ---                     */
+/* ========================================= */
+.booking-card {
+    border: 1px solid #ddd;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#map {
+    height: 400px;
+    width: 100%;
+    border-radius: 15px;
+    margin-top: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ========================================= */
+/* --- IMAGE UPLOAD ZONE & PREVIEWS ---      */
+/* ========================================= */
+.image-upload-container {
+    position: relative;
+}
+
+.image-upload-label {
+    display: block;
+    border: 2px dashed #ddd;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #f9f9f9;
+    overflow: hidden;
+}
+
+.image-upload-label:hover {
+    border-color: #ff385c;
+    background-color: #fff0f3;
+}
+
+/* Multi-preview Grid */
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.preview-item {
+    position: relative;
+}
+
+.preview-item img {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+/* Remove button logic */
+.btn-remove-image {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(34, 34, 34, 0.7);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    z-index: 10;
+}
+
+.btn-remove-image:hover {
+    background-color: #ff385c;
+}
+
+/* ========================================= */
+/* --- TOM SELECT (DROPDOWN ICONS) ---       */
+/* ========================================= */
+.ts-control {
+    border-radius: 8px !important;
+    padding: 0.75rem 1rem !important;
+    border: 1px solid #dee2e6 !important;
+}
+
+.ts-control.focus {
+    border-color: #ff385c !important;
+    box-shadow: 0 0 0 0.25rem rgba(255, 56, 92, 0.25) !important;
+}
+
+.category-icon {
+    width: 24px;
+    text-align: center;
+    color: #717171;
+}
+
+.ts-dropdown .active .category-icon,
+.ts-control .item .category-icon {
+    color: #ff385c;
+}
+
+/* ========================================= */
+/* --- FOOTER & RESPONSIVENESS ---           */
+/* ========================================= */
+.f-info {
+    padding: 2rem 0;
+    background-color: #f7f7f7;
+    border-top: 1px solid #ddd;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .listing-gallery-container {
+        height: 300px;
+        border-radius: 0;
+    }
+
+    .gallery-sub-images-grid,
+    .show-all-photos-btn {
+        display: none;
+    }
+
+    .auth-card {
+        padding: 1.5rem;
+        max-width: 100%;
+    }
+}

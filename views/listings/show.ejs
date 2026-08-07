@@ -1,0 +1,801 @@
+﻿<% layout('/layouts/boilerplate') %>
+
+    <style>
+        /* Gallery Styling */
+        .airbnb-gallery {
+            display: grid;
+            grid-template-columns: 50% 24.5% 24.5%;
+            grid-template-rows: 250px 250px;
+            gap: 8px;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .airbnb-gallery img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+            transition: filter 0.2s ease-in-out;
+        }
+
+        .airbnb-gallery img:hover {
+            filter: brightness(0.85);
+        }
+
+        .img-main {
+            grid-column: 1 / 2;
+            grid-row: 1 / 3;
+        }
+
+        .img-sub-1 {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+        }
+
+        .img-sub-2 {
+            grid-column: 3 / 4;
+            grid-row: 1 / 2;
+        }
+
+        .img-sub-3 {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+        }
+
+        .img-sub-4 {
+            grid-column: 3 / 4;
+            grid-row: 2 / 3;
+        }
+
+        .show-all-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: white;
+            border: 1px solid black;
+            padding: 7px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, background-color 0.2s;
+            z-index: 10;
+        }
+
+        .show-all-btn:hover {
+            background: #f8f9fa;
+            transform: scale(1.02);
+        }
+
+        /* Description Truncation Styling */
+        .description-text {
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+        }
+
+        .description-text.collapsed {
+            -webkit-line-clamp: 3;
+            /* Show only 3 lines */
+        }
+
+        .description-text.expanded {
+            -webkit-line-clamp: unset;
+        }
+
+        /* Map Styling */
+        #map {
+            height: 400px;
+            min-height: 400px;
+            width: 100%;
+            border-radius: 15px;
+            z-index: 1;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .airbnb-gallery {
+                grid-template-columns: 100%;
+                grid-template-rows: 300px;
+            }
+
+            .img-sub-1,
+            .img-sub-2,
+            .img-sub-3,
+            .img-sub-4 {
+                display: none;
+            }
+        }
+    </style>
+
+    <script>
+        const mapToken = "<%- mapToken %>";
+        const listing = {
+            geometry: <%- JSON.stringify(listing.geometry || { type: "Point", coordinates: [76.6413, 12.3118] }) %>,
+            title: "<%- listing.title %>"
+        };
+        const coordinates = listing.geometry.coordinates;
+        const pricePerNight = <%= listing.price || 0 %>;
+    </script>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h3 class="fw-bold mb-1">
+                        <%= listing.title %>
+                    </h3>
+                    <p class="text-muted mb-0"><i class="fa-solid fa-location-dot me-2"></i>
+                        <%= listing.location %>, <%= listing.country %>
+                    </p>
+                </div>
+                <div>
+                    <% let isWished=false; if (currentUser && currentUser.wishlists &&
+                        currentUser.wishlists.includes(listing._id)) { isWished=true; } %>
+                        <button
+                            class="btn btn-light border rounded-pill shadow-sm d-flex align-items-center px-3 text-dark fw-bold"
+                            onclick="toggleShowWishlist(event, '<%= listing._id %>', this)">
+                            <i class="fa-solid fa-heart me-2 <%= isWished ? 'text-danger' : 'text-muted' %>"
+                                style="<%= isWished ? 'color: #ff385c !important;' : '' %>"></i> <span
+                                class="save-text">
+                                <%= isWished ? 'Saved' : 'Save' %>
+                            </span>
+                        </button>
+                </div>
+            </div>
+
+            <div class="airbnb-gallery mt-4 mb-4 shadow-sm">
+                <% if(listing.image && listing.image.length> 0) { %>
+                    <img class="img-main" src="<%= listing.image[0].url %>" alt="Main View" data-bs-toggle="modal"
+                        data-bs-target="#galleryModal">
+                    <% } else { %>
+                        <img class="img-main"
+                            src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60"
+                            alt="Default Image">
+                        <% } %>
+
+                            <% for(let i=1; i<=4; i++) { %>
+                                <% if(listing.image && listing.image.length> i) { %>
+                                    <img class="img-sub-<%= i %>" src="<%= listing.image[i].url %>"
+                                        alt="Interior View <%= i %>" data-bs-toggle="modal"
+                                        data-bs-target="#galleryModal">
+                                    <% } %>
+                                        <% } %>
+
+                                            <% if(listing.image && listing.image.length> 0) { %>
+                                                <button class="show-all-btn" data-bs-toggle="modal"
+                                                    data-bs-target="#galleryModal">
+                                                    <i class="fa-solid fa-grip"></i> Show all photos
+                                                </button>
+                                                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-lg-8 col-md-12 pe-lg-5">
+            <div class="mb-4">
+                <h5 class="fw-bold">Hosted by <%= listing.owner.username %>
+                </h5>
+                <div class="description-container mt-3">
+                    <p class="description-text collapsed" id="descriptionText">
+                        <%= listing.description %>
+                    </p>
+                    <button class="btn btn-link p-0 show-more-btn fw-bold text-dark text-decoration-underline"
+                        id="toggleDescription" style="display: none; border: none; background: none;">
+                        Show more <i class="fa-solid fa-chevron-right ms-1" style="font-size: 0.8rem;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- ── Amenities ── -->
+            <div class="mb-4">
+                <h4 class="fw-bold mb-4">What this place offers</h4>
+                <div class="row row-cols-2 g-3">
+                    <div class="col d-flex align-items-center gap-3" style="font-size:1rem;">
+                        <i class="fa-solid fa-wifi" style="width:22px;font-size:1.15rem;"></i> Wifi
+                    </div>
+                    <div class="col d-flex align-items-center gap-3" style="font-size:1rem;">
+                        <i class="fa-solid fa-kitchen-set" style="width:22px;font-size:1.15rem;"></i> Kitchen
+                    </div>
+                    <div class="col d-flex align-items-center gap-3" style="font-size:1rem;">
+                        <i class="fa-solid fa-snowflake" style="width:22px;font-size:1.15rem;"></i> Air conditioning
+                    </div>
+                    <div class="col d-flex align-items-center gap-3" style="font-size:1rem;">
+                        <i class="fa-solid fa-car" style="width:22px;font-size:1.15rem;"></i> Free parking
+                    </div>
+                    <div class="col d-flex align-items-center gap-3" style="font-size:1rem;">
+                        <i class="fa-solid fa-tv" style="width:22px;font-size:1.15rem;"></i> TV
+                    </div>
+                    <div class="col d-flex align-items-center gap-3" style="font-size:1rem;">
+                        <i class="fa-solid fa-shirt" style="width:22px;font-size:1.15rem;"></i> Washer
+                    </div>
+                    <div class="col d-flex align-items-center gap-3" style="font-size:1rem;">
+                        <i class="fa-solid fa-water-ladder" style="width:22px;font-size:1.15rem;"></i> Pool
+                    </div>
+                    <div class="col d-flex align-items-center gap-3" style="font-size:1rem;">
+                        <i class="fa-solid fa-fire-burner" style="width:22px;font-size:1.15rem;"></i> BBQ grill
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+            <h4 class="mb-3 fw-bold">Where you'll be</h4>
+            <div id="map" class="shadow-sm" style="height:400px; min-height:400px; width:100%;"></div>
+            <hr class="my-4">
+
+            <% if(!(currentUser && listing.owner._id.equals(currentUser._id))) { %>
+                <h4 class="mb-3 fw-bold">Select check-in date</h4>
+                <div id="inline-calendar" class="mb-4 d-flex justify-content-center w-100 overflow-hidden"
+                    style="min-height: 330px;"></div>
+                <hr class="my-4">
+                <% } %>
+                    <% if(currentUser) { %>
+                        <div class="mb-4">
+                            <h4 class="mb-3 fw-bold">Leave a Review</h4>
+                            <form action="/listings/<%= listing._id %>/reviews" method="POST" novalidate
+                                class="needs-validation">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold" style="font-size: 1.1rem;">Overall Rating</label>
+                                    <fieldset class="starability-slot">
+                                        <input type="radio" id="no-rate" class="input-no-rate" name="review[rating]"
+                                            value="5" checked aria-label="No rating." />
+                                        <% for(let i=1; i<=5; i++) { %>
+                                            <input type="radio" id="first-rate<%= i %>" name="review[rating]"
+                                                value="<%= i %>" />
+                                            <label for="first-rate<%= i %>" title="<%= i %> star">
+                                                <%= i %> star
+                                            </label>
+                                            <% } %>
+                                    </fieldset>
+                                </div>
+
+                                <div class="row mb-4 pe-lg-5">
+                                    <% const metrics=[ { label: 'Cleanliness' , id: 'cleanliness' }, { label: 'Accuracy'
+                                        , id: 'accuracy' }, { label: 'Communication' , id: 'communication' }, {
+                                        label: 'Location' , id: 'location' }, { label: 'Check-in' , id: 'checkIn' }, {
+                                        label: 'Value' , id: 'value' } ]; %>
+                                        <% metrics.forEach(metric=> { %>
+                                            <div
+                                                class="col-md-6 mb-1 d-flex justify-content-between align-items-center pe-md-4">
+                                                <label class="form-label mb-0 fw-normal" style="font-size: 0.95rem;">
+                                                    <%= metric.label %>
+                                                </label>
+                                                <fieldset class="starability-slot m-0"
+                                                    style="transform: scale(0.65); transform-origin: right;">
+                                                    <input type="radio" id="no-rate-<%= metric.id %>"
+                                                        class="input-no-rate" name="review[<%= metric.id %>]" value="5"
+                                                        checked aria-label="No rating." />
+                                                    <% for(let i=1; i<=5; i++) { %>
+                                                        <input type="radio" id="<%= metric.id %>-rate<%= i %>"
+                                                            name="review[<%= metric.id %>]" value="<%= i %>" />
+                                                        <label for="<%= metric.id %>-rate<%= i %>"
+                                                            title="<%= i %> star"></label>
+                                                        <% } %>
+                                                </fieldset>
+                                            </div>
+                                            <% }) %>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="comment" class="form-label fw-semibold">Share your experience</label>
+                                    <textarea name="review[comment]" id="comment" cols="30" rows="4"
+                                        class="form-control" required
+                                        placeholder="What was it like staying here?"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-dark px-4">Submit Review</button>
+                            </form>
+                        </div>
+                        <hr class="my-4">
+                        <% } %>
+
+                            <div class="mb-4">
+                                <% let avgClean=0, avgAcc=0, avgComm=0, avgLoc=0, avgCheckIn=0, avgVal=0, totalAvg=0;
+                                    let hasReviews=listing.reviews.length> 0;
+                                    if (hasReviews) {
+                                    listing.reviews.forEach(r => {
+                                    avgClean += r.cleanliness || r.rating || 5;
+                                    avgAcc += r.accuracy || r.rating || 5;
+                                    avgComm += r.communication || r.rating || 5;
+                                    avgLoc += r.location || r.rating || 5;
+                                    avgCheckIn += r.checkIn || r.rating || 5;
+                                    avgVal += r.value || r.rating || 5;
+                                    totalAvg += r.rating || 5;
+                                    });
+                                    const len = listing.reviews.length;
+                                    avgClean = (avgClean / len).toFixed(1);
+                                    avgAcc = (avgAcc / len).toFixed(1);
+                                    avgComm = (avgComm / len).toFixed(1);
+                                    avgLoc = (avgLoc / len).toFixed(1);
+                                    avgCheckIn = (avgCheckIn / len).toFixed(1);
+                                    avgVal = (avgVal / len).toFixed(1);
+                                    totalAvg = (totalAvg / len).toFixed(2);
+                                    }
+                                    %>
+
+                                    <% if(!hasReviews) { %>
+                                        <h4 class="mb-4 fw-bold">Reviews (0)</h4>
+                                        <p class="text-muted">No reviews yet.</p>
+                                        <% } else { %>
+                                            <h4 class="mb-5 fw-bold d-flex align-items-center"
+                                                style="font-size: 1.4rem;">
+                                                <i class="fa-solid fa-star me-2" style="font-size: 1.1rem;"></i>
+                                                <%= totalAvg %> Â· <%= listing.reviews.length %> reviews
+                                            </h4>
+
+                                            <div class="row mb-5 pe-lg-5">
+                                                <% const bars=[ { label: 'Cleanliness' , score: avgClean }, {
+                                                    label: 'Accuracy' , score: avgAcc }, { label: 'Communication' ,
+                                                    score: avgComm }, { label: 'Location' , score: avgLoc }, {
+                                                    label: 'Check-in' , score: avgCheckIn }, { label: 'Value' , score:
+                                                    avgVal } ]; %>
+                                                    <% bars.forEach(bar=> { %>
+                                                        <div class="col-md-6 mb-3 d-flex align-items-center pe-md-5">
+                                                            <span class="w-50 fw-normal" style="font-size: 0.95rem;">
+                                                                <%= bar.label %>
+                                                            </span>
+                                                            <div class="w-50 d-flex align-items-center">
+                                                                <div class="progress flex-grow-1 me-3"
+                                                                    style="height: 4px; background-color: #dddddd;">
+                                                                    <div class="progress-bar bg-dark rounded"
+                                                                        role="progressbar"
+                                                                        style="width: <%= (bar.score/5)*100 %>%"
+                                                                        aria-valuenow="<%= bar.score %>"
+                                                                        aria-valuemin="0" aria-valuemax="5"></div>
+                                                                </div>
+                                                                <span class="fw-bold" style="font-size: 0.85rem;">
+                                                                    <%= bar.score %>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <% }) %>
+                                            </div>
+                                            <div class="row">
+                                                <% for(let review of listing.reviews) { %>
+                                                    <div class="col-md-6 mb-4 pe-md-5">
+                                                        <div class="d-flex align-items-center mb-3">
+                                                            <div class="bg-dark text-white rounded-circle d-flex justify-content-center align-items-center me-3"
+                                                                style="width: 48px; height: 48px; font-size: 1.2rem;">
+                                                                <%= review.author.username.charAt(0).toUpperCase() %>
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-0 fw-bold" style="font-size: 1.05rem;">
+                                                                    <%= review.author.username %>
+                                                                </h6>
+                                                                <span class="text-muted" style="font-size: 0.85rem;">
+                                                                    <%= new
+                                                                        Date(review.created_at).toLocaleString('en-US',
+                                                                        { month: 'long' , year: 'numeric' }) %>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <p class="starability-result m-0"
+                                                                style="transform: scale(0.6); transform-origin: left; min-height: 20px;"
+                                                                data-rating="<%= review.rating %>"></p>
+                                                        </div>
+
+                                                        <div class="review-text-container">
+                                                            <p class="mb-1 fw-normal"
+                                                                style="display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5rem; text-overflow: ellipsis; font-size: 1rem; color: #222;">
+                                                                <%= review.comment %>
+                                                            </p>
+                                                        </div>
+
+                                                        <% if(currentUser && review.author.equals(currentUser._id)) { %>
+                                                            <form method="POST"
+                                                                action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
+                                                                class="mt-2">
+                                                                <button
+                                                                    class="btn btn-sm text-decoration-underline text-danger fw-bold p-0"
+                                                                    style="background: none; border: none; box-shadow: none;">Delete
+                                                                    review</button>
+                                                            </form>
+                                                            <% } %>
+                                                    </div>
+                                                    <% } %>
+                                            </div>
+                                            <% } %>
+                            </div>
+
+                            <hr class="my-5">
+
+                            <!-- Host Profile Section -->
+                            <div class="host-profile-section mb-5">
+                                <div class="d-flex align-items-center mb-4">
+                                    <img src="<%= listing.owner.avatarUrl || 'https://a0.muscache.com/defaults/user_pic-225x225.png?v=3' %>"
+                                        alt="Host Avatar"
+                                        class="rounded-circle me-3 border border-2 border-white shadow-sm"
+                                        style="width: 104px; height: 104px; object-fit: cover;">
+                                    <div>
+                                        <h3 class="fw-bold mb-1" style="font-size: 1.8rem;">Hosted by <%=
+                                                listing.owner.username %>
+                                        </h3>
+                                        <p class="text-muted mb-0" style="font-size: 1rem;">
+                                            Joined <% if(listing.owner.joinedDate) { %>
+                                                <%= new Date(listing.owner.joinedDate).toLocaleString('en-US', {
+                                                    month: 'long' , year: 'numeric' }) %>
+                                                    <% } else { %>February 2026<% } %>
+                                                            <% if(listing.owner.isSuperHost) { %>
+                                                                <span class="mx-2">â€¢</span> <i
+                                                                    class="fa-solid fa-medal text-dark"></i> Superhost
+                                                                <% } %>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-4 mb-4">
+                                    <div class="col-6 mb-3">
+                                        <i class="fa-solid fa-star fs-5 mb-2"></i>
+                                        <div class="fw-normal" style="font-size: 1.05rem;">
+                                            <%= listing.reviews.length %> Reviews
+                                        </div>
+                                    </div>
+                                    <% if(listing.owner.isSuperHost) { %>
+                                        <div class="col-6 mb-3">
+                                            <i class="fa-solid fa-medal fs-5 mb-2"></i>
+                                            <div class="fw-normal" style="font-size: 1.05rem;">Superhost</div>
+                                        </div>
+                                        <% } %>
+                                            <div class="col-6 mb-3">
+                                                <i class="fa-solid fa-language fs-5 mb-2"></i>
+                                                <div class="fw-normal" style="font-size: 1.05rem;">Speaks <%=
+                                                        (listing.owner.languages && listing.owner.languages.length> 0) ?
+                                                        listing.owner.languages.join(', ') : 'English' %></div>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <i class="fa-solid fa-clock fs-5 mb-2"></i>
+                                                <div class="fw-normal" style="font-size: 1.05rem;">Response rate: <%=
+                                                        listing.owner.responseRate || '100' %>%</div>
+                                            </div>
+                                </div>
+
+                                <p class="mb-4 text-muted"
+                                    style="line-height: 1.6; font-size: 1.05rem; max-width: 600px;">
+                                    As a host, <%= listing.owner.username %> loves ensuring guests have the perfect
+                                        stay.
+                                        Contact the host with any questions you may have before or during your trip.
+                                </p>
+
+                                <% if (currentUser && !listing.owner._id.equals(currentUser._id)) { %>
+                                    <button class="btn btn-outline-dark fw-bold px-4 py-2" data-bs-toggle="modal"
+                                        data-bs-target="#messageHostModal"
+                                        style="border-radius: 8px; border-width: 1px;">
+                                        <i class="fa-regular fa-comment-dots me-2"></i>Message Host
+                                    </button>
+                                    <% } else if (!currentUser) { %>
+                                        <a href="/login" class="btn btn-outline-dark fw-bold px-4 py-2"
+                                            style="border-radius: 8px; border-width: 1px;">
+                                            <i class="fa-regular fa-comment-dots me-2"></i>Message Host
+                                        </a>
+                                        <% } %>
+                            </div>
+
+                            <!-- Message Host Modal -->
+                            <div class="modal fade" id="messageHostModal" tabindex="-1"
+                                aria-labelledby="messageHostModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+                                    <div class="modal-content" style="border-radius: 16px; border: none;">
+                                        <div class="modal-header border-0 pb-0">
+                                            <h5 class="modal-title fw-bold" id="messageHostModalLabel">
+                                                Message <%= listing.owner.username %>
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body px-4 pb-0">
+                                            <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-3">
+                                                <img src="<%= listing.owner.avatarUrl || 'https://a0.muscache.com/defaults/user_pic-225x225.png?v=3' %>"
+                                                    alt="Host"
+                                                    style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
+                                                <div>
+                                                    <div class="fw-bold">
+                                                        <%= listing.owner.username %>
+                                                    </div>
+                                                    <div class="text-muted small"><i class="fa-solid fa-home me-1"></i>
+                                                        <%= listing.title %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <form action="/messages/start" method="POST" id="messageHostForm">
+                                                <input type="hidden" name="hostId" value="<%= listing.owner._id %>">
+                                                <input type="hidden" name="listingId" value="<%= listing._id %>">
+                                                <div class="mb-3">
+                                                    <textarea name="body" id="messageBody" rows="4" class="form-control"
+                                                        placeholder="Hi! I'm interested in your listing and have a few questions..."
+                                                        style="border-radius: 12px; border-color: #dddddd; resize: none; font-size: 0.95rem;"
+                                                        required></textarea>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                                            <button type="button" class="btn btn-light fw-bold px-4 py-2 flex-grow-1"
+                                                data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
+                                            <button type="submit" form="messageHostForm"
+                                                class="btn fw-bold px-4 py-2 flex-grow-1 text-white"
+                                                style="background-color: #ff385c; border: none; border-radius: 8px;">
+                                                <i class="fa-solid fa-paper-plane me-2"></i>Send Message
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+        </div>
+        <div class="col-lg-4 col-md-12">
+            <div class="card booking-card sticky-top shadow-lg border-0" style="top: 2rem; border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h4 class="card-title fw-bold mb-0">
+                        <%= listing.price.toLocaleString("en-IN", { style: "currency" , currency: "INR" ,
+                            maximumFractionDigits: 0 }) %>
+                            <span class="text-muted fw-normal" style="font-size: 1rem;">/ night</span>
+                    </h4>
+                    <hr class="my-4">
+
+                    <% if(currentUser && listing.owner._id.equals(currentUser._id)) { %>
+                        <!-- OWNER VIEW: Management dashboard -->
+                        <div class="row g-2 mb-4 text-center">
+                            <div class="col-4">
+                                <div class="p-3 rounded-3" style="background:#f7f7f7;">
+                                    <div class="fw-bold" style="font-size:1.1rem;">
+                                        <%= listing.reviews.length %>
+                                    </div>
+                                    <div class="text-muted" style="font-size:0.72rem;">Reviews</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 rounded-3" style="background:#fff0f3;">
+                                    <div class="fw-bold" style="font-size:1.1rem; color:#ff385c;">
+                                        <%= listing.price.toLocaleString("en-IN") %>
+                                    </div>
+                                    <div class="text-muted" style="font-size:0.72rem;">Per Night</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 rounded-3" style="background:#f7f7f7;">
+                                    <div class="fw-bold" style="font-size:1rem;"><i class="fa-solid fa-location-dot"
+                                            style="color:#ff385c;"></i></div>
+                                    <div class="text-muted" style="font-size:0.72rem;">
+                                        <%= listing.location.split(",")[0] %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a href="/listings/<%= listing._id %>/edit"
+                                class="btn fw-bold py-2 text-white d-flex align-items-center justify-content-center gap-2"
+                                style="background:#222;border-radius:10px;">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit Listing
+                            </a>
+                            <a href="/messages"
+                                class="btn fw-bold py-2 d-flex align-items-center justify-content-center gap-2"
+                                style="background:#f7f7f7;border:1.5px solid #ebebeb;border-radius:10px;color:#222;">
+                                <i class="fa-regular fa-comment-dots"></i> View Messages
+                            </a>
+                            <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE">
+                                <button class="btn btn-outline-danger w-100 py-2 fw-bold" style="border-radius:10px;">
+                                    <i class="fa-solid fa-trash-can me-2"></i>Delete Listing
+                                </button>
+                            </form>
+                        </div>
+
+                        <% } else { %>
+                            <!-- GUEST VIEW: Booking form -->
+                            <form action="/listings/<%= listing._id %>/bookings" method="POST" class="needs-validation"
+                                novalidate id="bookingForm">
+                                <div class="border mb-4 mt-3"
+                                    style="border-radius: 12px; overflow: hidden; border-color: #b0b0b0 !important;">
+                                    <div class="row g-0 border-bottom" style="border-color: #b0b0b0 !important;">
+                                        <div class="col-6 border-end p-2 position-relative cursor-pointer"
+                                            style="border-color: #b0b0b0 !important;">
+                                            <label for="checkIn"
+                                                class="form-label text-uppercase fw-bold m-0 ms-1 mb-1 cursor-pointer"
+                                                style="font-size: 0.65rem; letter-spacing: 0.5px;">Check-in</label>
+                                            <input type="text"
+                                                class="form-control border-0 p-0 ms-1 shadow-none fw-normal cursor-pointer"
+                                                id="checkIn" name="booking[checkIn]" placeholder="Add date"
+                                                style="background: transparent; font-size: 0.95rem;">
+                                        </div>
+                                        <div class="col-6 p-2 position-relative cursor-pointer">
+                                            <label for="checkOut"
+                                                class="form-label text-uppercase fw-bold m-0 ms-1 mb-1 cursor-pointer"
+                                                style="font-size: 0.65rem; letter-spacing: 0.5px;">Checkout</label>
+                                            <input type="text"
+                                                class="form-control border-0 p-0 ms-1 shadow-none fw-normal cursor-pointer"
+                                                id="checkOut" name="booking[checkOut]" placeholder="Add date"
+                                                style="background: transparent; font-size: 0.95rem;">
+                                        </div>
+                                    </div>
+                                    <div class="row g-0">
+                                        <div class="col-12 p-2 position-relative">
+                                            <label for="guests" class="form-label text-uppercase fw-bold m-0 ms-1 mb-1"
+                                                style="font-size: 0.65rem; letter-spacing: 0.5px;">Guests</label>
+                                            <select class="form-select border-0 p-0 ms-1 shadow-none fw-normal w-100"
+                                                id="guests" name="booking[guests]" required
+                                                style="background: transparent; cursor: pointer; font-size: 0.95rem;">
+                                                <option value="1" selected>1 guest</option>
+                                                <option value="2">2 guests</option>
+                                                <option value="3">3 guests</option>
+                                                <option value="4">4 guests</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="priceSummary" class="mt-4 d-none">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <p id="nightsText" class="text-muted mb-0"></p>
+                                        <p id="subtotalText" class="mb-0 fw-bold"></p>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between">
+                                        <h5 class="fw-bold">Total</h5>
+                                        <h5 id="totalPriceText" class="fw-bold"></h5>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2 mt-3">
+                                    <button type="submit" class="btn btn-danger py-2 fw-bold fs-5 text-white"
+                                        style="background-color: #ff385c; border: none; border-radius: 8px;">
+                                        Reserve
+                                    </button>
+                                </div>
+                            </form>
+                            <p class="text-center text-muted mt-3 mb-0 small">You won't be charged yet</p>
+                            <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+
+    <div class="modal fade" id="galleryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center pt-0">
+                    <h3 class="mb-4 fw-bold">All photos</h3>
+                    <div class="container" style="max-width: 800px;">
+                        <% if(listing.image && listing.image.length> 0) { %>
+                            <% for(let img of listing.image) { %>
+                                <div class="mb-4">
+                                    <img src="<%= img.url %>" class="img-fluid rounded shadow-sm"
+                                        style="width: 100%; object-fit: cover;" loading="lazy">
+                                </div>
+                                <% } %>
+                                    <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Description Toggle Logic
+        document.addEventListener("DOMContentLoaded", () => {
+            const desc = document.getElementById("descriptionText");
+            const btn = document.getElementById("toggleDescription");
+            if (desc.scrollHeight > 80) { btn.style.display = "inline-block"; }
+            btn.addEventListener("click", () => {
+                if (desc.classList.contains("collapsed")) {
+                    desc.classList.remove("collapsed"); desc.classList.add("expanded");
+                    btn.innerHTML = 'Show less <i class="fa-solid fa-chevron-up ms-1" style="font-size: 0.8rem;"></i>';
+                } else {
+                    desc.classList.remove("expanded"); desc.classList.add("collapsed");
+                    btn.innerHTML = 'Show more <i class="fa-solid fa-chevron-right ms-1" style="font-size: 0.8rem;"></i>';
+                    desc.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+        });
+
+        // 2. Airbnb-Style Calendar & Dynamic Price Calculation
+        const checkInInput = document.getElementById('checkIn');
+        const checkOutInput = document.getElementById('checkOut');
+        const priceSummary = document.getElementById('priceSummary');
+        const nightsText = document.getElementById('nightsText');
+        const subtotalText = document.getElementById('subtotalText');
+        const totalPriceText = document.getElementById('totalPriceText');
+
+        function updatePrice() {
+            let checkInStr = checkInInput.value;
+            let checkOutStr = checkOutInput.value;
+
+            if (checkInStr && checkInStr.includes(' to ')) {
+                const parts = checkInStr.split(' to ');
+                checkInStr = parts[0];
+                checkOutStr = parts[1] || checkOutStr;
+            }
+
+            const checkIn = new Date(checkInStr);
+            const checkOut = new Date(checkOutStr);
+
+            if (checkInStr && checkOutStr && !isNaN(checkIn) && !isNaN(checkOut) && checkOut > checkIn) {
+                const nights = Math.ceil(Math.abs(checkOut - checkIn) / (1000 * 60 * 60 * 24));
+                const total = nights * pricePerNight;
+                const formattedTotal = total.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+                const formattedPrice = pricePerNight.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+                nightsText.innerText = `${formattedPrice} x ${nights} night${nights > 1 ? 's' : ''}`;
+                subtotalText.innerText = formattedTotal;
+                totalPriceText.innerText = formattedTotal;
+                priceSummary.classList.remove('d-none');
+            } else { priceSummary.classList.add('d-none'); }
+        }
+
+        if (checkInInput && checkOutInput) {
+            flatpickr(checkInInput, {
+                inline: true,
+                appendTo: document.getElementById('inline-calendar'),
+                minDate: "today",
+                altInput: true,
+                altFormat: "M j, Y",
+                dateFormat: "Y-m-d",
+                showMonths: window.innerWidth >= 768 ? 2 : 1, // 2 months on desktop
+                plugins: [rangePlugin({ input: "#checkOut" })],
+                onChange: function () {
+                    updatePrice();
+                }
+            });
+        }
+
+        const bookingForm = document.getElementById('bookingForm');
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', function (e) {
+                if (!checkInInput.value || !checkOutInput.value) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alert("Please select both Check-in and Checkout dates before reserving.");
+                }
+            });
+        }
+    </script>
+
+    <script src="/js/map.js"></script>
+
+    <script>
+        async function toggleShowWishlist(event, listingId, btnElement) {
+            event.preventDefault();
+
+            const isLoggedIn = "<%- currentUser ? 'true' : 'false' %>" === "true";
+            if (!isLoggedIn) {
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/wishlist/${listingId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                const icon = btnElement.querySelector('i');
+                const textSpan = btnElement.querySelector('.save-text');
+
+                if (data.action === 'added') {
+                    icon.classList.remove('text-muted');
+                    icon.classList.add('text-danger');
+                    icon.style.setProperty('color', '#ff385c', 'important');
+                    textSpan.innerText = 'Saved';
+                } else if (data.action === 'removed') {
+                    icon.classList.remove('text-danger');
+                    icon.classList.add('text-muted');
+                    icon.style.removeProperty('color');
+                    textSpan.innerText = 'Save';
+                }
+            } catch (error) {
+                console.error('Error toggling wishlist', error);
+            }
+        }
+    </script>

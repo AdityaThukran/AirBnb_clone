@@ -1,0 +1,179 @@
+<% layout('layouts/boilerplate') %>
+
+    <style>
+        .inbox-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .inbox-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #ebebeb;
+        }
+
+        .inbox-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .conv-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.2rem 1rem;
+            border-radius: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: background-color 0.15s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .conv-card:hover {
+            background-color: #f7f7f7;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .conv-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .conv-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .conv-name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .conv-listing {
+            font-size: 0.8rem;
+            color: #717171;
+            margin-bottom: 0.25rem;
+        }
+
+        .conv-preview {
+            font-size: 0.9rem;
+            color: #717171;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conv-preview.unread {
+            font-weight: 700;
+            color: #222;
+        }
+
+        .conv-time {
+            font-size: 0.8rem;
+            color: #717171;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .unread-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #ff385c;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .empty-inbox {
+            text-align: center;
+            padding: 5rem 1rem;
+        }
+
+        .empty-inbox i {
+            font-size: 4rem;
+            color: #dddddd;
+            margin-bottom: 1rem;
+        }
+
+        .empty-inbox h4 {
+            font-weight: 700;
+            color: #222;
+        }
+
+        .empty-inbox p {
+            color: #717171;
+            font-size: 1rem;
+        }
+    </style>
+
+    <div class="inbox-container">
+        <div class="inbox-header d-flex justify-content-between align-items-center">
+            <h2>Messages</h2>
+            <% if (unreadCount> 0) { %>
+                <span class="badge rounded-pill"
+                    style="background-color: #ff385c; font-size: 0.85rem; padding: 6px 12px;">
+                    <%= unreadCount %> unread
+                </span>
+                <% } %>
+        </div>
+
+        <% if (conversations.length===0) { %>
+            <div class="empty-inbox">
+                <i class="fa-regular fa-comment-dots"></i>
+                <h4>No messages yet</h4>
+                <p>When guests message you or you contact a host, it'll show up here.</p>
+                <a href="/listings" class="btn btn-dark mt-3 fw-bold px-4 py-2" style="border-radius: 8px;">Explore
+                    Listings</a>
+            </div>
+            <% } else { %>
+                <div>
+                    <% for (let conv of conversations) { const otherUser=conv.participants.find(p=>
+                        !p._id.equals(currentUser._id));
+                        const lastMsg = conv.messages.length > 0 ? conv.messages[conv.messages.length - 1] : null;
+                        const hasUnread = conv.messages.some(m => !m.isRead && m.sender.toString() !==
+                        currentUser._id.toString());
+                        const timeAgo = lastMsg ? new Date(lastMsg.createdAt).toLocaleDateString('en-IN', { day:
+                        'numeric', month: 'short' }) : '';
+                        %>
+                        <a href="/messages/<%= conv._id %>" class="conv-card">
+                            <img src="<%= otherUser ? otherUser.avatarUrl : 'https://a0.muscache.com/defaults/user_pic-225x225.png?v=3' %>"
+                                alt="User avatar" class="conv-avatar">
+                            <div class="conv-content">
+                                <div class="conv-name">
+                                    <%= otherUser ? otherUser.username : 'User' %>
+                                </div>
+                                <% if (conv.listing) { %>
+                                    <div class="conv-listing">
+                                        <i class="fa-solid fa-home" style="font-size: 0.75rem;"></i>
+                                        <%= conv.listing.title %>
+                                    </div>
+                                    <% } %>
+                                        <div class="conv-preview <%= hasUnread ? 'unread' : '' %>">
+                                            <% if (lastMsg) { %>
+                                                <% if (lastMsg.sender.toString()===currentUser._id.toString()) { %>You:
+                                                    <% } %>
+                                                        <%= lastMsg.content.length> 60 ? lastMsg.content.substring(0,
+                                                            60) + '...' : lastMsg.content %>
+                                                            <% } else { %>
+                                                                No messages yet
+                                                                <% } %>
+                                        </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-end gap-2">
+                                <span class="conv-time">
+                                    <%= timeAgo %>
+                                </span>
+                                <% if (hasUnread) { %>
+                                    <div class="unread-dot"></div>
+                                    <% } %>
+                            </div>
+                        </a>
+                        <% } %>
+                </div>
+                <% } %>
+    </div>

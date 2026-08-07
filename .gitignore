@@ -1,0 +1,24 @@
+# Environment variables - NEVER commit these
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Debug & generated HTML dump files (contain rendered secrets)
+*.html
+!public/**/*.html
+
+# Debug scripts and log files
+debug_*.js
+test_*.js
+*_error.log
+server_error.log
+tmp*.ejs
+tmp*.txt
+git_log_show.txt
+
+# OS files
+.DS_Store
+Thumbs.db

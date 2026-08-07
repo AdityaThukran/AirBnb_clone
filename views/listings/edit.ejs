@@ -1,0 +1,291 @@
+<% layout("/layouts/boilerplate") %>
+
+    <style>
+        .amenity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+        }
+
+        .amenity-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 8px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            background: #fff;
+            user-select: none;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #555;
+            min-height: 80px;
+        }
+
+        .amenity-card i {
+            font-size: 1.25rem;
+            color: #888;
+            transition: color 0.18s;
+        }
+
+        .amenity-card:hover {
+            border-color: #222;
+            color: #222;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .amenity-card:hover i {
+            color: #222;
+        }
+
+        .amenity-card.selected {
+            border-color: #222;
+            background: #f7f7f7;
+            color: #222;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .amenity-card.selected i {
+            color: #ff385c;
+        }
+
+        .amenity-card input[type="checkbox"] {
+            display: none;
+        }
+    </style>
+
+    <div class="auth-container py-5">
+        <div class="auth-card" style="max-width: 800px;">
+            <div class="text-center mb-4">
+                <i class="fa-solid fa-compass auth-brand"></i>
+                <h2 class="fw-bold">Edit Your Listing</h2>
+                <p class="text-muted">Update the details or manage your property images</p>
+            </div>
+
+            <form action="/listings/<%= listing._id %>?_method=PUT" method="POST" novalidate class="needs-validation"
+                enctype="multipart/form-data" id="listing-form">
+
+                <div class="mb-3">
+                    <label for="title" class="form-label fw-bold">Title</label>
+                    <input name="listing[title]" value="<%= listing.title %>" type="text"
+                        class="form-control auth-input" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label fw-bold">Description</label>
+                    <textarea name="listing[description]" class="form-control auth-input" rows="4"
+                        required><%= listing.description %></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Manage Current Images</label>
+                    <div class="preview-grid p-3 border rounded-3 bg-light">
+                        <% listing.image.forEach((img, index)=> { %>
+                            <div class="preview-item">
+                                <img src="<%= img.url.replace('/upload', '/upload/w_200,h_200,c_fill') %>"
+                                    class="img-fluid rounded shadow-sm">
+                                <input type="checkbox" name="deleteImages[]" value="<%= img.filename %>"
+                                    id="delete-<%= index %>" class="d-none delete-checkbox">
+                                <label for="delete-<%= index %>" class="btn-remove-image bg-danger border-0">
+                                    <i class="fa-solid fa-minus text-white"></i>
+                                </label>
+                            </div>
+                            <% }) %>
+                    </div>
+                    <p class="text-muted small mt-2">Click the red minus button to mark an image for deletion.</p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Upload New Images</label>
+                    <div class="image-upload-container">
+                        <input type="file" name="listing[img]" id="image-upload" class="d-none" accept="image/*"
+                            multiple>
+                        <label for="image-upload" class="image-upload-label mb-2">
+                            <div id="upload-prompt" class="text-center p-4">
+                                <i class="fa-solid fa-images fa-2x mb-2 text-muted"></i>
+                                <p class="mb-0 fw-bold">Add more photos to your gallery</p>
+                            </div>
+                        </label>
+                        <div id="image-preview" class="d-none preview-grid p-3 border rounded-3 bg-white shadow-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-3 col-md-4">
+                        <label for="price" class="form-label fw-bold">Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">₹</span>
+                            <input name="listing[price]" value="<%= listing.price %>" type="number"
+                                class="form-control auth-input border-start-0" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 col-md-8">
+                        <label for="category" class="form-label fw-bold">Category</label>
+                        <select name="listing[category]" id="category-select" class="form-select auth-input" required>
+                            <option value="Rooms" data-icon="fa-bed" <%=listing.category==='Rooms' ? 'selected' : '' %>
+                                >Rooms</option>
+                            <option value="Huts" data-icon="fa-house-chimney-window" <%=listing.category==='Huts'
+                                ? 'selected' : '' %>>Huts</option>
+                            <option value="Tropical" data-icon="fa-sun-plant-wilt" <%=listing.category==='Tropical'
+                                ? 'selected' : '' %>>Tropical</option>
+                            <option value="Beachfront" data-icon="fa-umbrella-beach" <%=listing.category==='Beachfront'
+                                ? 'selected' : '' %>>Beachfront</option>
+                            <option value="Iconic cities" data-icon="fa-mountain-city"
+                                <%=listing.category==='Iconic cities' ? 'selected' : '' %>>Cities</option>
+                            <option value="Mountains" data-icon="fa-mountain-sun" <%=listing.category==='Mountains'
+                                ? 'selected' : '' %>>Mountains</option>
+                            <option value="Castles" data-icon="fa-fort-awesome" <%=listing.category==='Castles'
+                                ? 'selected' : '' %>>Castles</option>
+                            <option value="Amazing pools" data-icon="fa-water-ladder"
+                                <%=listing.category==='Amazing pools' ? 'selected' : '' %>>Amazing pools</option>
+                            <option value="Camping" data-icon="fa-tent" <%=listing.category==='Camping' ? 'selected'
+                                : '' %>>Camping</option>
+                            <option value="Farms" data-icon="fa-cow" <%=listing.category==='Farms' ? 'selected' : '' %>
+                                >Farms</option>
+                            <option value="Arctic" data-icon="fa-snowflake" <%=listing.category==='Arctic' ? 'selected'
+                                : '' %>>Arctic</option>
+                            <option value="Domes" data-icon="fa-igloo" <%=listing.category==='Domes' ? 'selected' : ''
+                                %>>Domes</option>
+                            <option value="Boats" data-icon="fa-sailboat" <%=listing.category==='Boats' ? 'selected'
+                                : '' %>>Boats</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-3 col-md-6">
+                        <label for="location" class="form-label fw-bold">Location</label>
+                        <input name="listing[location]" value="<%= listing.location %>" type="text"
+                            class="form-control auth-input" required>
+                    </div>
+                    <div class="mb-3 col-md-6">
+                        <label for="country" class="form-label fw-bold">Country</label>
+                        <input name="listing[country]" value="<%= listing.country %>" type="text"
+                            class="form-control auth-input" required>
+                    </div>
+                </div>
+
+                <!-- ── Amenities Picker ── -->
+                <div class="mb-4 mt-3">
+                    <label class="form-label fw-bold d-block mb-1">What this place offers</label>
+                    <p class="text-muted small mb-3">Click to select the amenities available at your property</p>
+                    <div class="amenity-grid">
+                        <% const ALL_AMENITIES=[ { label: 'Wifi' , icon: 'fa-wifi' }, { label: 'Kitchen' ,
+                            icon: 'fa-kitchen-set' }, { label: 'Air conditioning' , icon: 'fa-snowflake' }, {
+                            label: 'Free parking' , icon: 'fa-car' }, { label: 'TV' , icon: 'fa-tv' }, { label: 'Washer'
+                            , icon: 'fa-shirt' }, { label: 'Dryer' , icon: 'fa-jug-detergent' }, { label: 'Pool' ,
+                            icon: 'fa-water-ladder' }, { label: 'Hot tub' , icon: 'fa-hot-tub-person' }, {
+                            label: 'BBQ grill' , icon: 'fa-fire-burner' }, { label: 'Gym' , icon: 'fa-dumbbell' }, {
+                            label: 'EV charger' , icon: 'fa-charging-station' }, { label: 'Heating' ,
+                            icon: 'fa-temperature-arrow-up' }, { label: 'Workspace' , icon: 'fa-laptop' }, {
+                            label: 'Baby crib' , icon: 'fa-baby-carriage' }, { label: 'Pet friendly' , icon: 'fa-paw' },
+                            { label: 'Smoke alarm' , icon: 'fa-bell-slash' }, { label: 'First aid kit' ,
+                            icon: 'fa-kit-medical' }, { label: 'Fire extinguisher' , icon: 'fa-fire-extinguisher' }, {
+                            label: 'Self check-in' , icon: 'fa-key' }, { label: 'Iron' , icon: 'fa-box-archive' }, {
+                            label: 'Hair dryer' , icon: 'fa-wind' }, { label: 'Coffee maker' , icon: 'fa-mug-hot' }, {
+                            label: 'Dishwasher' , icon: 'fa-soap' }, { label: 'Outdoor dining' , icon: 'fa-utensils' },
+                            ]; %>
+                            <% const savedAmenities=listing.amenities || []; %>
+                                <% ALL_AMENITIES.forEach(a=> { %>
+                                    <% const isChecked=savedAmenities.includes(a.label); %>
+                                        <label class="amenity-card <%= isChecked ? 'selected' : '' %>">
+                                            <input type="checkbox" name="listing[amenities][]" value="<%= a.label %>"
+                                                <%=isChecked ? 'checked' : '' %>>
+                                            <i class="fa-solid <%= a.icon %>"></i>
+                                            <span>
+                                                <%= a.label %>
+                                            </span>
+                                        </label>
+                                        <% }) %>
+                    </div>
+                </div>
+
+                <button class="btn btn-dark w-100 auth-btn mt-3 mb-2 py-2">Update Listing</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 1. Icon Dropdown Initialization
+        new TomSelect("#category-select", {
+            render: {
+                option: (data, escape) => `<div><i class="fa-solid ${data.icon} me-2"></i>${escape(data.text)}</div>`,
+                item: (data, escape) => `<div><i class="fa-solid ${data.icon} me-2"></i>${escape(data.text)}</div>`
+            }
+        });
+
+        // 2. New Image Upload Preview with bug fix
+        const imageUpload = document.getElementById('image-upload');
+        const imagePreview = document.getElementById('image-preview');
+        const form = document.getElementById('listing-form');
+        let newFiles = [];
+
+        imageUpload.addEventListener('change', function (e) {
+            const files = Array.from(e.target.files);
+            newFiles = newFiles.concat(files);
+            renderNewPreviews();
+        });
+
+        function renderNewPreviews() {
+            imagePreview.innerHTML = '';
+            if (newFiles.length > 0) {
+                imagePreview.classList.remove('d-none');
+                imagePreview.style.display = 'grid';
+                newFiles.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const div = document.createElement('div');
+                        div.className = 'preview-item';
+                        div.innerHTML = `
+                        <img src="${e.target.result}" class="img-fluid rounded shadow-sm">
+                        <button type="button" class="btn-remove-image" data-index="${index}">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    `;
+                        imagePreview.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                imagePreview.classList.add('d-none');
+            }
+        }
+
+        imagePreview.addEventListener('click', function (e) {
+            const btn = e.target.closest('.btn-remove-image');
+            if (btn) {
+                e.preventDefault(); e.stopPropagation(); // Prevents file browser from opening
+                newFiles.splice(parseInt(btn.dataset.index), 1);
+                renderNewPreviews();
+            }
+        });
+
+        // 3. Visual Toggle for Existing Image Deletion
+        document.querySelectorAll('.delete-checkbox').forEach(cb => {
+            cb.addEventListener('change', function () {
+                const item = this.closest('.preview-item');
+                if (this.checked) {
+                    item.style.opacity = '0.4';
+                    item.querySelector('label').style.backgroundColor = '#000'; // Change color to indicate active deletion
+                } else {
+                    item.style.opacity = '1';
+                    item.querySelector('label').style.backgroundColor = '#fe424d';
+                }
+            });
+        });
+
+        // Final form submission sync
+        form.addEventListener('submit', function () {
+            const dt = new DataTransfer();
+            newFiles.forEach(file => dt.items.add(file));
+            imageUpload.files = dt.files;
+        });
+    </script>

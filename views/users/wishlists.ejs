@@ -1,0 +1,101 @@
+<% layout("/layouts/boilerplate") %>
+
+    <style>
+        /* Listing Card Refinements inherited from index.ejs */
+        .card-img-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            aspect-ratio: 1 / 1;
+        }
+
+        .card-img-top {
+            height: 100% !important;
+            width: 100% !important;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .listing-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+    </style>
+
+    <div class="container mt-5">
+        <h2 class="mb-4 fw-bold">Your Wishlists</h2>
+
+        <% if (wishlists && wishlists.length> 0) { %>
+            <div class="row row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-sm-1 g-4">
+                <% for(let listing of wishlists) { %>
+                    <div class="col" id="wishlist-item-<%= listing._id %>">
+                        <a href="/listings/<%= listing._id %>" class="filter-link"
+                            style="text-decoration: none; color: inherit;">
+                            <div class="card listing-card h-100 border-0">
+                                <div class="card-img-container shadow-sm">
+                                    <i class="fa-solid fa-heart heart-icon wished-heart"
+                                        onclick="toggleWishlist(event, '<%= listing._id %>', this)"></i>
+                                    <% let
+                                        imageUrl="https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60"
+                                        ; if (listing.image && Array.isArray(listing.image) && listing.image.length> 0)
+                                        {
+                                        imageUrl = listing.image[0].url;
+                                        }
+                                        %>
+                                        <img src="<%= imageUrl %>" class="card-img-top" alt="listing_image">
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text mb-0">
+                                        <b class="d-block text-dark">
+                                            <%= listing.location %>, <%= listing.country %>
+                                        </b>
+                                        <span class="text-muted">
+                                            <%= listing.title %>
+                                        </span><br>
+                                        <span class="fw-bold mt-1 d-block text-dark">
+                                            ₹<%= listing.price.toLocaleString("en-IN") %> / night
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <% } %>
+            </div>
+            <% } else { %>
+                <div class="alert alert-light border shadow-sm text-center py-5 mt-4" style="border-radius: 16px;">
+                    <i class="fa-regular fa-heart mb-3 text-muted" style="font-size: 3rem;"></i>
+                    <h4 class="fw-bold text-dark">No wishlists yet</h4>
+                    <p class="text-muted">As you search, tap the heart icon to save your favorite places and Experiences
+                        to a wishlist.</p>
+                    <a href="/listings" class="btn auth-btn mt-3 px-4">Start exploring</a>
+                </div>
+                <% } %>
+    </div>
+
+    <script>
+        async function toggleWishlist(event, listingId, element) {
+            event.preventDefault();
+
+            try {
+                const response = await fetch(`/wishlist/${listingId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                // If we are on the wishlist page and we remove an item, we can optionally hide it
+                if (data.action === 'removed') {
+                    const itemContainer = document.getElementById(`wishlist-item-${listingId}`);
+                    if (itemContainer) {
+                        itemContainer.style.display = 'none'; // Instantly hide from view
+                    }
+                } else if (data.action === 'added') {
+                    element.classList.add('wished-heart');
+                }
+            } catch (error) {
+                console.error('Error toggling wishlist', error);
+            }
+        }
+    </script>

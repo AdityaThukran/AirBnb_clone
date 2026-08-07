@@ -1,0 +1,163 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="auth-container py-5">
+    <div class="auth-card" style="max-width: 750px;">
+        <div class="text-center mb-4">
+            <i class="fa-solid fa-compass auth-brand"></i>
+            <h2 class="fw-bold">Create a New Listing</h2>
+            <p class="text-muted">Fill in the details to start hosting on Wanderlust</p>
+        </div>
+
+        <form method="POST" action="/listings" novalidate class="needs-validation" enctype="multipart/form-data" id="listing-form">
+            <div class="mb-3">
+                <label for="title" class="form-label fw-bold">Title</label>
+                <input name="listing[title]" placeholder="Add a catchy title" type="text" class="form-control auth-input" id="title" required>
+                <div class="invalid-feedback">Please provide a catchy title.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label fw-bold">Description</label>
+                <textarea name="listing[description]" placeholder="Describe the vibe..." class="form-control auth-input" rows="4" id="description" required></textarea>
+                <div class="invalid-feedback">Please describe your place.</div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Upload Images</label>
+                <div class="image-upload-container">
+                    <input type="file" name="listing[img]" id="image-upload" class="d-none" accept="image/*" multiple required>
+                    
+                    <label for="image-upload" class="image-upload-label mb-2">
+                        <div id="upload-prompt" class="text-center p-5">
+                            <i class="fa-solid fa-images fa-3x mb-3 text-muted"></i>
+                            <p class="mb-0 fw-bold">Click or drag to upload multiple images</p>
+                            <p class="text-muted small">PNG, JPG up to 5MB each</p>
+                        </div>
+                    </label>
+
+                    <div id="image-preview" class="d-none preview-grid p-3 border rounded-3 bg-light"></div>
+                </div>
+                <div class="invalid-feedback">Please provide at least one image.</div>
+            </div>
+
+            <div class="row">
+                <div class="mb-3 col-md-4">
+                    <label for="price" class="form-label fw-bold">Price</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">₹</span>
+                        <input name="listing[price]" placeholder="1200" type="number" class="form-control auth-input border-start-0" id="price" required>
+                    </div>
+                </div>
+
+                <div class="mb-3 col-md-8">
+                    <label for="category" class="form-label fw-bold">Category</label>
+                    <select name="listing[category]" id="category-select" class="form-select auth-input" required autocomplete="off">
+                        <option value="">Select a category...</option>
+                        <option value="Rooms" data-icon="fa-bed">Rooms</option>
+                        <option value="Huts" data-icon="fa-house-chimney-window">Huts</option>
+                        <option value="Tropical" data-icon="fa-sun-plant-wilt">Tropical</option>
+                        <option value="Beachfront" data-icon="fa-umbrella-beach">Beachfront</option>
+                        <option value="Iconic cities" data-icon="fa-mountain-city">Iconic cities</option>
+                        <option value="Mountains" data-icon="fa-mountain-sun">Mountains</option>
+                        <option value="Castles" data-icon="fa-fort-awesome">Castles</option>
+                        <option value="Amazing pools" data-icon="fa-water-ladder">Amazing pools</option>
+                        <option value="Camping" data-icon="fa-tent">Camping</option>
+                        <option value="Farms" data-icon="fa-cow">Farms</option>
+                        <option value="Arctic" data-icon="fa-snowflake">Arctic</option>
+                        <option value="Domes" data-icon="fa-igloo">Domes</option>
+                        <option value="Boats" data-icon="fa-sailboat">Boats</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="mb-3 col-md-6">
+                    <label for="location" class="form-label fw-bold">Location</label>
+                    <input name="listing[location]" placeholder="Jaipur, Rajasthan" type="text" class="form-control auth-input" id="location" required>
+                </div>
+                <div class="mb-3 col-md-6">
+                    <label for="country" class="form-label fw-bold">Country</label>
+                    <input name="listing[country]" placeholder="India" type="text" class="form-control auth-input" id="country" required>
+                </div>
+            </div>
+
+            <button class="btn btn-dark w-100 auth-btn mt-3 mb-2 py-2">Create Listing</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 1. Tom Select Initialization
+    new TomSelect("#category-select", {
+        create: false,
+        render: {
+            option: function(data, escape) {
+                return `<div><i class="fa-solid ${data.icon} me-2 category-icon"></i>${escape(data.text)}</div>`;
+            },
+            item: function(data, escape) {
+                return `<div><i class="fa-solid ${data.icon} me-2 category-icon"></i>${escape(data.text)}</div>`;
+            }
+        }
+    });
+
+    // 2. MULTI-IMAGE UPLOAD WITH REMOVE SUPPORT
+    const imageUpload = document.getElementById('image-upload');
+    const imagePreview = document.getElementById('image-preview');
+    const form = document.getElementById('listing-form');
+    
+    let uploadedFiles = [];
+
+    function renderPreviews() {
+        imagePreview.innerHTML = '';
+        if (uploadedFiles.length > 0) {
+            imagePreview.classList.remove('d-none');
+            imagePreview.style.display = 'grid';
+
+            uploadedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'preview-item';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="img-fluid rounded shadow-sm">
+                        <button type="button" class="btn-remove-image" data-index="${index}">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    `;
+                    imagePreview.appendChild(div);
+                }
+                reader.readAsDataURL(file);
+            });
+        } else {
+            imagePreview.classList.add('d-none');
+            imageUpload.value = ''; 
+        }
+    }
+
+    imageUpload.addEventListener('change', function(event) {
+        const newFiles = Array.from(event.target.files);
+        uploadedFiles = uploadedFiles.concat(newFiles);
+        renderPreviews();
+    });
+
+    // Event delegation to handle remove button clicks
+    imagePreview.addEventListener('click', function(e) {
+        const removeBtn = e.target.closest('.btn-remove-image');
+        if (removeBtn) {
+            // Stop event from triggering the file browser
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const index = parseInt(removeBtn.dataset.index);
+            uploadedFiles.splice(index, 1);
+            renderPreviews();
+        }
+    });
+
+    form.addEventListener('submit', function(event) {
+        if (uploadedFiles.length > 0) {
+            const dataTransfer = new DataTransfer();
+            uploadedFiles.forEach(file => dataTransfer.items.add(file));
+            imageUpload.files = dataTransfer.files;
+        }
+    });
+</script>

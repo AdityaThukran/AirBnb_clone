@@ -1,0 +1,355 @@
+<style>
+  /* Airbnb-style Search Pill */
+  .search-pill-modern {
+    background-color: white;
+    border: 1px solid #dddddd;
+    border-radius: 40px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .search-pill-modern:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .search-pill-section {
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-pill-section:hover {
+    background-color: #f7f7f7;
+  }
+
+  .search-pill-divider {
+    width: 1px;
+    height: 24px;
+    background-color: #dddddd;
+  }
+
+  .search-input-transparent {
+    border: none;
+    outline: none;
+    font-size: 0.9rem;
+    width: 120px;
+    background: transparent;
+    font-weight: 600;
+  }
+
+  .search-input-transparent.fw-normal {
+    font-weight: 400;
+  }
+
+  .search-input-transparent::placeholder {
+    color: #717171;
+    font-weight: 500;
+  }
+
+  /* Specific styles for date input placeholder appearance */
+  .search-input-transparent[type="date"] {
+    color: #222222;
+    cursor: pointer;
+  }
+
+  .search-input-transparent[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.5;
+    cursor: pointer;
+  }
+
+  .input-wrapper:hover {
+    background-color: transparent !important;
+  }
+
+  .search-btn-circle {
+    background-color: #ff385c;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+  }
+
+  .search-btn-circle:hover {
+    background-color: #e31c5f;
+  }
+
+  .navbar-custom {
+    padding-left: 4% !important;
+    padding-right: 4% !important;
+  }
+
+  .user-menu-pill {
+    border: 1px solid #dddddd;
+    border-radius: 30px;
+    padding: 5px 5px 5px 12px;
+    transition: box-shadow 0.2s;
+    background-color: white;
+  }
+
+  .user-menu-pill:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+  }
+
+  .brand-icon {
+    color: #ff385c;
+    font-size: 2.2rem;
+  }
+
+  .brand-text {
+    color: #ff385c;
+    letter-spacing: -1.5px;
+    font-size: 1.6rem;
+    font-weight: 800;
+  }
+
+  .nav-right-link {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #222222 !important;
+    text-decoration: none;
+    padding: 10px 14px;
+    border-radius: 30px;
+    transition: background-color 0.2s;
+  }
+
+  .nav-right-link:hover {
+    background-color: #f7f7f7;
+  }
+
+  .avatar-placeholder {
+    background-color: #717171 !important;
+  }
+
+  /* Language Modal Styles */
+  .lang-btn {
+    text-align: left;
+    border-radius: 8px;
+    padding: 10px 14px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+
+  .lang-btn:hover {
+    background-color: #f7f7f7;
+  }
+
+  .lang-btn.active {
+    border-color: #222222;
+  }
+
+  @media (max-width: 992px) {
+    .navbar-custom {
+      padding-left: 2% !important;
+      padding-right: 2% !important;
+    }
+
+    .search-pill-modern {
+      margin-top: 10px;
+      margin-bottom: 10px;
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .search-input-transparent {
+      width: 100%;
+    }
+  }
+</style>
+
+<nav id="main-navbar" class="navbar navbar-expand-md bg-white border-bottom sticky-top py-3"
+  style="transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 1030;">
+  <div class="container-fluid navbar-custom">
+
+    <a class="navbar-brand d-flex align-items-center" href="/listings">
+      <i class="fa-solid fa-compass me-2 brand-icon"></i>
+      <span class="brand-text d-none d-lg-inline">wanderlust</span>
+    </a>
+
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+      data-bs-target="#navbarNavAltMarkup">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+
+      <div class="navbar-nav mx-auto">
+        <div class="search-pill-modern">
+          <form role="search" action="/listings" method="GET" class="d-flex align-items-center w-100 m-0">
+
+            <div class="search-pill-section px-3 py-2 text-dark d-none d-sm-flex">
+              <input class="search-input-transparent text-center" type="text" placeholder="Anywhere" name="location">
+            </div>
+
+            <div class="search-pill-divider d-none d-sm-block"></div>
+
+            <div class="search-pill-section px-3 py-2 text-dark d-none d-sm-flex">
+              <input class="search-input-transparent text-center fw-normal" style="width: 110px;" type="date"
+                name="week">
+            </div>
+
+            <div class="search-pill-divider d-none d-sm-block"></div>
+
+            <div class="search-pill-section text-muted px-3 py-2 d-flex align-items-center input-wrapper flex-grow-1">
+              <input id="searchInput" class="search-input-transparent flex-grow-1 fw-normal text-secondary"
+                style="width: 100px;" type="search" placeholder="Add guests" name="q">
+              <button class="search-btn-circle ms-2 flex-shrink-0" type="submit">
+                <i class="fa-solid fa-magnifying-glass" style="font-size: 0.8rem;"></i>
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <div class="navbar-nav ms-auto align-items-center">
+        <a class="nav-right-link d-none d-lg-inline" href="/listings/new">Wanderlust your home</a>
+
+        <% if (currentUser) { %>
+          <a class="nav-right-link d-none d-lg-inline ms-1 position-relative" href="/messages" title="Messages">
+            <i class="fa-regular fa-comment-dots" style="font-size: 1.1rem;"></i>
+            <% if (unreadMessageCount> 0) { %>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                style="background-color:#ff385c; font-size:0.6rem; min-width:16px; height:16px; display:flex; align-items:center; justify-content:center; padding:0 4px;">
+                <%= unreadMessageCount> 9 ? '9+' : unreadMessageCount %>
+              </span>
+              <% } %>
+          </a>
+          <% } %>
+
+            <div class="nav-item dropdown ms-2">
+              <a class="nav-link dropdown-toggle d-flex align-items-center user-menu-pill" href="#" role="button"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-bars me-3 ms-1 small text-dark"></i>
+                <div
+                  class="text-white rounded-circle d-flex justify-content-center align-items-center shadow-sm avatar-placeholder"
+                  style="width: 32px; height: 32px;">
+                  <i class="fa-solid fa-user" style="font-size: 0.9rem;"></i>
+                </div>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end border-0 shadow mt-2"
+                style="border-radius: 12px; min-width: 240px; padding: 8px 0;">
+                <% if(!currentUser) { %>
+                  <li><a class="dropdown-item py-2 fw-bold" href="/signup">Sign up</a></li>
+                  <li><a class="dropdown-item py-2" href="/login">Log in</a></li>
+                  <% } else { %>
+                    <li><a class="dropdown-item py-2 fw-bold" href="/listings">My Trips</a></li>
+                    <li><a class="dropdown-item py-2" href="/wishlists">Wishlists</a></li>
+                    <li><a class="dropdown-item py-2" href="/messages">
+                        <i class="fa-regular fa-comment-dots me-2 text-muted"></i>Messages
+                      </a></li>
+                    <li><a class="dropdown-item py-2" href="/listings/new">Wanderlust your home</a></li>
+                    <li>
+                      <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item py-2" href="/logout">Log out</a></li>
+                    <% } %>
+              </ul>
+            </div>
+      </div>
+
+    </div>
+  </div>
+</nav>
+
+<!-- Language Modal -->
+<div class="modal fade" id="languageModal" tabindex="-1" aria-labelledby="languageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 16px;">
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body px-4 pb-5 pt-0">
+        <h5 class="fw-bold mb-4">Choose a language and region</h5>
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <div class="lang-btn active"
+              onclick="alert('Language changed to English (US)'); bootstrap.Modal.getInstance(document.getElementById('languageModal')).hide();">
+              <div class="text-dark">English</div>
+              <div class="text-muted small">United States</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="lang-btn"
+              onclick="alert('Language changed to English (UK)'); bootstrap.Modal.getInstance(document.getElementById('languageModal')).hide();">
+              <div class="text-dark">English</div>
+              <div class="text-muted small">United Kingdom</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="lang-btn"
+              onclick="alert('Language changed to Español'); bootstrap.Modal.getInstance(document.getElementById('languageModal')).hide();">
+              <div class="text-dark">Español</div>
+              <div class="text-muted small">España</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="lang-btn"
+              onclick="alert('Language changed to Français'); bootstrap.Modal.getInstance(document.getElementById('languageModal')).hide();">
+              <div class="text-dark">Français</div>
+              <div class="text-muted small">France</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="lang-btn"
+              onclick="alert('Language changed to Hindi'); bootstrap.Modal.getInstance(document.getElementById('languageModal')).hide();">
+              <div class="text-dark">हिन्दी</div>
+              <div class="text-muted small">India</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="lang-btn"
+              onclick="alert('Language changed to Deutsch'); bootstrap.Modal.getInstance(document.getElementById('languageModal')).hide();">
+              <div class="text-dark">Deutsch</div>
+              <div class="text-muted small">Deutschland</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="lang-btn"
+              onclick="alert('Language changed to Italiano'); bootstrap.Modal.getInstance(document.getElementById('languageModal')).hide();">
+              <div class="text-dark">Italiano</div>
+              <div class="text-muted small">Italia</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="lang-btn"
+              onclick="alert('Language changed to Português'); bootstrap.Modal.getInstance(document.getElementById('languageModal')).hide();">
+              <div class="text-dark">Português</div>
+              <div class="text-muted small">Brasil</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const mainNavbar = document.getElementById("main-navbar");
+    window.addEventListener("scroll", function () {
+      if (window.scrollY > 20) {
+        mainNavbar.style.boxShadow = "0 8px 30px rgba(0,0,0,0.12)";
+        mainNavbar.style.borderBottomLeftRadius = "28px";
+        mainNavbar.style.borderBottomRightRadius = "28px";
+        mainNavbar.classList.remove("border-bottom");
+      } else {
+        mainNavbar.style.boxShadow = "none";
+        mainNavbar.style.borderBottomLeftRadius = "0px";
+        mainNavbar.style.borderBottomRightRadius = "0px";
+        mainNavbar.classList.add("border-bottom");
+      }
+    });
+  });
+</script>
