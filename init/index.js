@@ -1,37 +1,38 @@
+require('dotenv').config();
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 const mongoose = require('mongoose');
 const initData = require('./data.js');
 const Listing = require('../models/listing.js');
 
-const mongo_url = 'mongodb://localhost:27017/wanderlust';
+const dbUrl = process.env.ATLASDB_URL;
 
-main()
-    .then(() => {
-        console.log('MongoDB connected successfully')
-    })
-    .catch(err => { 
-        console.error('MongoDB connection error:', err)
-    });
-
-// Connect to MongoDB
-async function main() {
-        await mongoose.connect(mongo_url)
-};
-
-const initDB = async () => {
-        // Clear existing listings
-        await Listing.deleteMany({});
-
-        initData.data = initData.data.map((obj)=> ({
-            ...obj,
-            owner: "68bee60d9d5352afca94948d"
-        }));
-
-        // Insert initial data
-        await Listing.insertMany(initData.data);
-        console.log('Database initialized with sample data');
-    
+if (!dbUrl) {
+    console.error("❌ ATLASDB_URL not found in .env file. Please set it and try again.");
+    process.exit(1);
 }
 
-// Start the initialization
-initDB()
-  
+main()
+    .then(() => console.log('✅ MongoDB connected'))
+    .catch(err => { console.error('❌ MongoDB error:', err); process.exit(1); });
+
+async function main() {
+    await mongoose.connect(dbUrl);
+}
+
+const initDB = async () => {
+    await Listing.deleteMany({});
+    console.log("🗑️  Cleared existing listings");
+
+    const listings = initData.data.map(obj => ({
+        ...obj,
+        // No owner set — listings appear as "hosted by Wanderlust"
+    }));
+
+    await Listing.insertMany(listings);
+    console.log(`✅ Inserted ${listings.length} sample listings successfully!`);
+    await mongoose.disconnect();
+    console.log("🔌 Disconnected from MongoDB");
+};
+
+initDB();
